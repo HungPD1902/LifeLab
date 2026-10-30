@@ -1,24 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import {
-  Button,
-  C,
-  Field,
-  Gap,
-  Icon,
-  IconButton,
-  Notice,
-  Placeholder,
-  Row,
-  Screen,
-  T,
-  TextButton,
-} from '../components/ui';
-import { go, back } from '../navigation';
+import { Button, Checkbox, Field, Gap, Icon, Notice, Row, Screen, T, TextButton } from '../components/ui';
+import { BrandLogo, OtpField, StepProgress } from '../components/brand';
+import { go } from '../navigation';
 import type { ScreenId } from '../data/screens';
 import { useDemo } from '../state/demo';
 import { DEMO_ACCOUNT, DEMO_OTP } from '../data/demo-account';
+import { colors, themeColors } from '../design-system/tokens';
 
 export function SplashScreen() {
   useEffect(() => {
@@ -27,29 +16,43 @@ export function SplashScreen() {
   }, []);
   return (
     <Screen scroll={false}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center' }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Bắt đầu LifeLab"
           onPress={() => go('onboarding-1', {}, true)}
         >
-          <View
-            style={{
-              width: 154,
-              height: 154,
-              borderRadius: 77,
-              backgroundColor: '#d9d9d9',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <T size={25} bold>
-              LifeLab
-            </T>
-          </View>
+          <BrandLogo width={240} />
         </Pressable>
       </View>
     </Screen>
+  );
+}
+
+function SourceArtwork({ size = 318 }: { size?: number }) {
+  return (
+    <Image
+      source={require('../../assets/figma/onboarding-image-source.png')}
+      accessibilityLabel="Ảnh minh họa đang chờ thiết kế"
+      resizeMode="cover"
+      style={{
+        width: '100%',
+        maxWidth: size,
+        aspectRatio: 1,
+        alignSelf: 'center',
+        borderRadius: 12,
+      }}
+    />
+  );
+}
+function AuthHeading({ title }: { title: string }) {
+  return (
+    <View style={{ alignItems: 'center', gap: 12, marginBottom: 24 }}>
+      <T size={28} center>
+        {title}
+      </T>
+      <BrandLogo />
+    </View>
   );
 }
 
@@ -73,15 +76,15 @@ export function AuthScreen({ id }: { id: ScreenId }) {
         scroll={false}
         footer={
           <>
-            <Row style={{ justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+            <Row style={{ justifyContent: 'center', gap: 8, marginBottom: 18 }}>
               {[1, 2, 3].map((i) => (
                 <View
                   key={i}
                   style={{
-                    width: i === step ? 10 : 8,
-                    height: i === step ? 10 : 8,
-                    borderRadius: 5,
-                    backgroundColor: i === step ? C.ink : '#ccc',
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: i === step ? colors.primary[800] : colors.primary[200],
                   }}
                 />
               ))}
@@ -113,36 +116,34 @@ export function AuthScreen({ id }: { id: ScreenId }) {
         }
       >
         <View style={{ flex: 1, justifyContent: 'center' }}>
-          <Placeholder height={340} style={{ aspectRatio: 1, borderRadius: 22 }} />
+          <SourceArtwork size={350} />
         </View>
       </Screen>
     );
   }
   if (id === 'signup-success')
     return (
-      <Screen
-        scroll={false}
-        footer={<Button label="Bắt đầu học" onPress={() => go('login', {}, true)} />}
-      >
+      <Screen footer={<Button label="Bắt đầu học" onPress={() => go('login', {}, true)} />}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 }}>
           <View
             style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              width: 110,
-              height: 110,
-              borderRadius: 55,
-              justifyContent: 'center',
+              width: 96,
+              height: 96,
+              borderRadius: 48,
+              backgroundColor: themeColors.successGreen,
+              borderWidth: 3,
+              borderColor: themeColors.successText,
               alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <Icon name="check" size={48} />
+            <Icon name="check" size={48} color={themeColors.successText} />
           </View>
-          <T size={23} bold center>
+          <T size={26} bold center style={{ color: themeColors.primaryDark }}>
             Đăng ký thành công!
           </T>
-          <T center muted>
-            Chào mừng bạn đến với LifeLab.
+          <T center muted size={14} style={{ maxWidth: 280, lineHeight: 20 }}>
+            Chào mừng bạn đến với LifeLab. Hãy sẵn sàng cùng Mascot học thêm nhiều kỹ năng bổ ích!
           </T>
         </View>
       </Screen>
@@ -179,105 +180,75 @@ export function AuthScreen({ id }: { id: ScreenId }) {
     );
   if (id === 'verify')
     return (
-      <Screen
-        title="Xác thực"
-        onBack={() => back('register')}
-        footer={
-          <Button
-            label="Xác nhận"
-            onPress={() => {
-              if (otp !== DEMO_OTP) {
-                setOtpError('Mã xác thực không đúng.');
-                return;
-              }
-              setOtp('');
-              setOtpError('');
-              if (mode === 'reset') go('login', {}, true);
-              else go('signup-success', {}, true);
-            }}
-          />
-        }
-      >
-        <Gap size={34} />
-        <Brand />
-        <Gap size={36} />
-        <T size={26} bold center>
-          Xác thực
-        </T>
-        <Gap />
-        <T center muted>
+      <Screen>
+        <Gap size={14} />
+        <StepProgress step={2} />
+        <AuthHeading title="Xác thực" />
+        <T center>
           {mode === 'reset'
             ? 'Nhập mã xác thực được gửi đến email của bạn'
             : 'Nhập mã xác thực gồm 6 số được gửi đến số điện thoại của bạn'}
         </T>
         <Gap size={8} />
-        <T center bold>
-          {mode === 'reset' ? demo.email : maskPhoneNumber(demo.registrationPhone)}
-        </T>
+        <T center>{mode === 'reset' ? demo.email : maskPhoneNumber(demo.registrationPhone)}</T>
         <Gap size={28} />
-        <TextInput
-          accessibilityLabel="Mã xác thực"
-          keyboardType="number-pad"
-          maxLength={6}
+        <OtpField
           value={otp}
+          error={!!otpError}
           onChangeText={(value) => {
-            setOtp(value.replace(/\D/g, ''));
+            setOtp(value);
             setOtpError('');
-          }}
-          placeholder="— — — — — —"
-          placeholderTextColor="#bbb"
-          style={{
-            borderWidth: 1,
-            borderColor: '#ddd',
-            borderRadius: 8,
-            minHeight: 60,
-            textAlign: 'center',
-            letterSpacing: 13,
-            fontSize: 23,
           }}
         />
         {!!otpError && (
           <>
             <Gap size={10} />
-            <T center size={13} style={{ color: '#a52a2a' }}>
+            <T center size={12} style={{ color: themeColors.errorRed }}>
               {otpError}
             </T>
           </>
         )}
-        <Gap />
+        <Gap size={16} />
         <Row style={{ justifyContent: 'center' }}>
           <TextButton label={sent ? 'Đã gửi lại mã' : 'Gửi lại mã'} onPress={() => setSent(true)} />
           <T muted size={12}>
             {sent ? '00:59' : '00:30'}
           </T>
         </Row>
+        <Gap size={20} />
+        <Button
+          label="Xác nhận"
+          onPress={() => {
+            if (otp !== DEMO_OTP) {
+              setOtpError('Mã xác thực không đúng.');
+              return;
+            }
+            setOtp('');
+            setOtpError('');
+            go(mode === 'reset' ? 'login' : 'signup-success', {}, true);
+          }}
+        />
       </Screen>
     );
   const register = id === 'register';
   return (
-    <Screen onBack={() => back('onboarding-3')}>
-      <View style={{ alignSelf: 'flex-start' }}>
-        <IconButton name="chevron-left" label="Quay lại" onPress={() => back('onboarding-3')} />
-      </View>
-      <Gap size={18} />
-      <T size={28} bold center>
-        {register ? 'Đăng ký' : 'Đăng nhập'}
-      </T>
-      <Gap />
-      <Brand />
-      <Gap size={32} />
+    <Screen>
+      <Gap size={register ? 14 : 28} />
+      {register && <StepProgress step={1} />}
+      <AuthHeading title={register ? 'Đăng ký' : 'Đăng nhập'} />
       {register && (
         <Field
-          label="Họ và tên"
-          placeholder="Nhập họ và tên"
-          value={name}
-          onChangeText={setName}
-          autoComplete="name"
+          label="Số điện thoại"
+          placeholder="Nhập số điện thoại"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
         />
       )}
       <Field
-        label="Email"
-        placeholder="Nhập email của bạn"
+        label={register ? 'Email' : 'Email / Số điện thoại'}
+        accessibilityLabel="Email"
+        placeholder={register ? 'Nhập email của bạn' : 'Nhập email hoặc số điện thoại'}
         keyboardType="email-address"
         autoCapitalize="none"
         value={email}
@@ -289,11 +260,11 @@ export function AuthScreen({ id }: { id: ScreenId }) {
       />
       {register && (
         <Field
-          label="Số điện thoại"
-          placeholder="Nhập số điện thoại"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
+          label="Họ và tên"
+          placeholder="Nhập họ và tên"
+          value={name}
+          onChangeText={setName}
+          autoComplete="name"
         />
       )}
       <Field
@@ -316,38 +287,22 @@ export function AuthScreen({ id }: { id: ScreenId }) {
         />
       )}
       {register ? (
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityLabel="Đồng ý điều khoản"
-          accessibilityState={{ checked: agreed }}
-          onPress={() => setAgreed(!agreed)}
-          style={{ marginBottom: 20 }}
-        >
-          <Row>
-            <View
-              style={{
-                width: 18,
-                height: 18,
-                borderWidth: 1,
-                borderColor: '#999',
-                borderRadius: 3,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {agreed && <Icon name="check" size={14} />}
-            </View>
-            <T size={11}>Tôi đồng ý với Điều khoản và Chính sách bảo mật.</T>
-          </Row>
-        </Pressable>
+        <View style={{ marginBottom: 16 }}>
+          <Checkbox
+            accessibilityLabel="Đồng ý điều khoản"
+            label="Tôi đồng ý với Điều khoản và Chính sách bảo mật."
+            checked={agreed}
+            onChange={setAgreed}
+          />
+        </View>
       ) : (
-        <Row style={{ justifyContent: 'flex-end', marginBottom: 20 }}>
+        <Row style={{ justifyContent: 'flex-end', marginBottom: 16 }}>
           <TextButton label="Quên mật khẩu?" onPress={() => go('forgot-password')} />
         </Row>
       )}
       {!register && !!loginError && (
         <>
-          <T style={{ color: '#a52a2a' }} size={13}>
+          <T style={{ color: themeColors.errorRed }} size={13}>
             {loginError}
           </T>
           <Gap size={12} />
@@ -379,22 +334,22 @@ export function AuthScreen({ id }: { id: ScreenId }) {
       />
       {!register && (
         <>
-          <Gap size={26} />
+          <Gap size={24} />
           <Row>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ddd' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: colors.primary[200] }} />
             <T muted size={12}>
-              Hoặc đăng nhập với
+              Hoặc tiếp tục với
             </T>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#ddd' }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: colors.primary[200] }} />
           </Row>
-          <Gap />
+          <Gap size={16} />
           <Button
             variant="outline"
             label="Tiếp tục với Google"
             icon="globe"
             onPress={() => setSocialProvider('Google')}
           />
-          <Gap size={10} />
+          <Gap size={12} />
           <Button
             variant="outline"
             label="Tiếp tục với Apple"
@@ -403,9 +358,11 @@ export function AuthScreen({ id }: { id: ScreenId }) {
           />
         </>
       )}
-      <Gap size={30} />
-      <Row style={{ justifyContent: 'center' }}>
-        <T muted>{register ? 'Đã có tài khoản?' : 'Bạn chưa có tài khoản?'}</T>
+      <View style={{ flex: 1, minHeight: 24 }} />
+      <Row style={{ justifyContent: 'center', gap: 6 }}>
+        <T size={12} muted>
+          {register ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}
+        </T>
         <TextButton
           label={register ? 'Đăng nhập' : 'Đăng ký'}
           onPress={() => go(register ? 'login' : 'register', {}, true)}
@@ -423,27 +380,8 @@ export function AuthScreen({ id }: { id: ScreenId }) {
 function maskPhoneNumber(value: string) {
   const digits = value.replace(/\D/g, '');
   if (!digits.length) return '******';
-  // Keep at least the first digit hidden, even for short demo input.
   const visibleCount = Math.min(4, digits.length - 1);
   return (
     '*'.repeat(digits.length - visibleCount) + (visibleCount ? digits.slice(-visibleCount) : '')
-  );
-}
-
-function Brand() {
-  return (
-    <View
-      style={{
-        alignSelf: 'center',
-        paddingHorizontal: 18,
-        paddingVertical: 12,
-        borderRadius: 8,
-        backgroundColor: '#eee',
-      }}
-    >
-      <T bold size={18}>
-        LifeLab
-      </T>
-    </View>
   );
 }

@@ -2,19 +2,25 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import {
   Avatar,
-  C,
   Chips,
   Gap,
   IconButton,
-  MascotArt,
+  NotificationBanner,
   Placeholder,
-  Progress,
   Row,
   Screen,
   Section,
   T,
 } from '../components/ui';
-import { CategoryGrid, SuggestionsList, TaskCard } from '../components/content';
+import {
+  CategoryGrid,
+  MascotStageCard,
+  NotificationRow,
+  SuccessPillBanner,
+  SuggestionsList,
+  TaskCard,
+} from '../components/content';
+import { themeColors } from '../design-system/tokens';
 import { tasks } from '../data/content';
 import { ScreenId } from '../data/screens';
 import { go } from '../navigation';
@@ -25,7 +31,7 @@ export function HomeScreen({ empty = false }: { empty?: boolean }) {
   const [mascot, setMascot] = useState(0);
   return (
     <Screen tabs="home">
-      <Row between style={{ marginBottom: 28 }}>
+      <Row between style={{ marginBottom: 20 }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Mở hồ sơ"
@@ -48,7 +54,7 @@ export function HomeScreen({ empty = false }: { empty?: boolean }) {
       </Row>
       {empty ? (
         <>
-          <Placeholder height={230} style={{ marginHorizontal: 12, width: undefined }} />
+          <Placeholder height={221} />
           <Gap />
           <T center bold size={17}>
             Người bạn đồng hành đang chờ bạn
@@ -63,47 +69,46 @@ export function HomeScreen({ empty = false }: { empty?: boolean }) {
         </>
       ) : (
         <>
-          <Section title="Nhiệm vụ của tôi" action="2 việc cần làm" onPress={() => go('tasks')} />
+          <Section title="Nhiệm vụ của tôi" action="Xem tất cả" onPress={() => go('tasks')} />
           <TaskCard compact onPress={() => go('tasks')} />
           <Gap />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Xem mascot"
-            onPress={() => go('mascot')}
-          >
-            <T bold center size={19}>
-              {
-                ['Ngôi sao cô đơn', 'Ngôi sao an toàn', 'Ngôi sao tự lập', 'Ngôi sao sức khỏe'][
-                  mascot
-                ]
-              }
-            </T>
-          </Pressable>
-          <Gap size={16} />
-          <Row between style={{ marginVertical: 10 }}>
+          <Row between style={{ alignItems: 'center', marginVertical: 4 }}>
             <IconButton
               name="chevron-left"
               label="Mascot trước"
               onPress={() => setMascot((mascot + 3) % 4)}
             />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Chi tiết mascot"
-              onPress={() => go('mascot')}
-            >
-              <MascotArt size={225} />
-            </Pressable>
+            <View style={{ flex: 1, paddingHorizontal: 6 }}>
+              <MascotStageCard
+                category={['An toàn', 'Tự lập', 'Sức khỏe', 'Xã hội'][mascot]}
+                stage={2}
+                maxStage={3}
+                currentExp={70}
+                maxExp={100}
+                onPress={() => go('mascot')}
+              />
+            </View>
             <IconButton
               name="chevron-right"
               label="Mascot tiếp theo"
               onPress={() => setMascot((mascot + 1) % 4)}
             />
           </Row>
-          <View style={{ width: 200, alignSelf: 'center', marginVertical: 18 }}>
-            <Progress value={34 + mascot * 12} height={10} />
-          </View>
-          <Gap />
-          <Section title="Gợi ý" action="Xem tất cả" onPress={() => go('suggestions')} />
+          <Row style={{ justifyContent: 'center', gap: 6, marginTop: 4, marginBottom: 12 }}>
+            {[0, 1, 2, 3].map((i) => (
+              <View
+                key={i}
+                style={{
+                  width: i === mascot ? 18 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: i === mascot ? themeColors.primary : themeColors.primaryLight,
+                }}
+              />
+            ))}
+          </Row>
+          <Gap size={8} />
+          <Section title="Gợi ý bài học" action="Xem tất cả" onPress={() => go('suggestions')} />
           <SuggestionsList />
         </>
       )}
@@ -116,19 +121,47 @@ export function HomeDetailScreen({ id }: { id: ScreenId }) {
   if (id === 'notifications')
     return (
       <Screen title="Thông báo">
-        <Gap />
-        <View style={{ gap: 12 }}>
-          {[1, 2, 3, 4].map((i) => (
-            <Pressable
-              key={i}
-              accessibilityRole="button"
-              onPress={() => go('skill-detail', { title: 'An toàn điện' })}
-              style={{ padding: 18, borderRadius: 15, backgroundColor: C.fill }}
-            >
-              <T size={13}>Chúc mừng bạn đã hoàn thành An toàn điện</T>
-            </Pressable>
-          ))}
-        </View>
+        <SuccessPillBanner
+          message="Chúc mừng bạn đã hoàn thành An toàn điện"
+          onPress={() => go('skill-detail', { title: 'An toàn điện' })}
+        />
+        <Gap size={8} />
+        <NotificationBanner
+          type="success"
+          title="Nhiệm vụ hoàn thành"
+          text="Bạn đã nhận được +80 Sao và +20 Mảnh Mascot!"
+        />
+        <NotificationBanner
+          type="info"
+          title="Bài học mới mở khóa"
+          text="Bài 3: Xử lý tình huống đám cháy trong nhà đã sẵn sàng."
+        />
+        <NotificationBanner
+          type="warning"
+          title="Nhắc nhở học tập"
+          text="Hãy duy trì chuỗi học tập 7 ngày để nhận thưởng tuần."
+        />
+        <Gap size={14} />
+        <Section title="Cập nhật gần đây" />
+        <NotificationRow
+          initials="CR"
+          title="Ronaldo đã thích bài viết của bạn"
+          subtitle="Kỹ năng An toàn · 2 giờ trước"
+          unread
+          iconRight="heart"
+        />
+        <NotificationRow
+          initials="CS"
+          title="Costas đã nộp nhiệm vụ thực hành"
+          subtitle="Lớp Kỹ năng sống 8A · 3 giờ trước"
+          unread
+        />
+        <NotificationRow
+          initials="JD"
+          title="Jeremy đã nhắc đến bạn trong một thảo luận"
+          subtitle="Phòng học số 2 · Hôm qua"
+          unread={false}
+        />
       </Screen>
     );
   const suggestions = id === 'suggestions';
@@ -160,6 +193,7 @@ export function HomeDetailScreen({ id }: { id: ScreenId }) {
       <View style={{ gap: 12 }}>
         {suggestions && (filter === 'Tất cả' || filter === 'Sức khỏe') && (
           <TaskCard
+            suggestion
             task={{
               ...tasks[1],
               title: 'Sơ cứu vết trầy xước',
@@ -172,6 +206,7 @@ export function HomeDetailScreen({ id }: { id: ScreenId }) {
           <TaskCard
             key={task.title}
             task={task}
+            suggestion={suggestions}
             onPress={() => go('skill-detail', { title: task.title })}
           />
         ))}

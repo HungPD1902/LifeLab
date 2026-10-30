@@ -5,13 +5,23 @@ import { SkillScreen } from '../screens/skills';
 import { ClassScreen } from '../screens/classes';
 import { ProfileDetailScreen } from '../screens/profile';
 import { ScreenGallery } from '../screens/gallery';
+import { ComponentsShowcaseScreen } from '../screens/components';
 import { screenMeta, ScreenId } from '../data/screens';
 import { Button, Screen, T } from '../components/ui';
 import { go } from '../navigation';
+import { DesignProvider } from '../design-system/theme';
 
 export default function DetailRoute() {
   const { screen } = useLocalSearchParams<{ screen: string }>();
+  return (
+    <DesignProvider screen={screen}>
+      <DetailContent screen={screen} />
+    </DesignProvider>
+  );
+}
+function DetailContent({ screen }: { screen: string }) {
   if (screen === 'screens') return <ScreenGallery />;
+  if (screen === 'components') return <ComponentsShowcaseScreen />;
   const meta = screenMeta[screen as ScreenId];
   if (!meta)
     return (

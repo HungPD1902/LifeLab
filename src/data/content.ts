@@ -65,9 +65,9 @@ export const tasks: Task[] = [
     id: '2',
     title: 'Kỹ năng giao tiếp nhóm',
     category: 'Xã hội',
-    className: 'Lớp kỹ năng 8A',
+    className: 'Lớp kỹ năng 6E',
     progress: 100,
-    due: '04/10/2026',
+    due: '11/10/2026',
     status: 'Đã hoàn thành',
   },
 ];

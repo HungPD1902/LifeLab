@@ -25,6 +25,7 @@ export const screenMeta = {
   tasks: { title: 'Danh sách nhiệm vụ', node: '335:3281', group: 'home' },
   suggestions: { title: 'Gợi ý/ đề xuất', node: '335:3351', group: 'home' },
   skills: { title: 'Kỹ năng', node: '315:1514', group: 'skills' },
+  'skill-search': { title: 'Tìm kiếm kỹ năng', node: '', group: 'skills', variant: 'UI 511:8263' },
   'skill-category': { title: 'Kỹ năng — danh mục', node: '315:1645', group: 'skills' },
   'skill-detail': { title: 'skill - chi tiết', node: '315:1167', group: 'skills' },
   'lesson-1': { title: 'bài 1', node: '315:1250', group: 'skills' },
@@ -68,5 +69,6 @@ export const screenMeta = {
   'item-detail': { title: 'chi tiết vật phẩm', node: '419:3800', group: 'profile' },
   mascot: { title: 'Mascot', node: '421:4028', group: 'profile' },
   'mascot-detail': { title: 'Mascot detail', node: '421:4088', group: 'profile' },
+  components: { title: 'Thư viện Components (Design System)', node: '8:2', group: 'profile' },
 } as const satisfies Record<string, Meta>;
 export type ScreenId = keyof typeof screenMeta;

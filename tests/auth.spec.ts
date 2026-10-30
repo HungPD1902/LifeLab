@@ -26,7 +26,7 @@ test('login rejects empty and incorrect credentials before accepting the demo ac
   await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
   await expect(page).toHaveURL(/\/home$/);
   await expect(page.getByText('Xin chào Đức Hưng').filter({ visible: true })).toBeVisible();
-  await page.getByRole('tab', { name: 'Cá nhân', exact: true }).click();
+  await page.getByRole('tab', { name: 'Hồ sơ', exact: true }).click();
   await page.getByRole('button', { name: 'Cài đặt', exact: true }).click();
   await page.getByRole('button', { name: 'Đăng xuất', exact: true }).click();
   await expect(

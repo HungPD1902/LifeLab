@@ -1,7 +1,8 @@
 import { View } from 'react-native';
-import { Badge, Card, Gap, Row, Screen, Section, T } from '../components/ui';
+import { Badge, Button, Card, Gap, Row, Screen, Section, T } from '../components/ui';
 import { screenMeta, ScreenId } from '../data/screens';
 import { go } from '../navigation';
+import { uiSources } from '../design-system/coverage';
 
 export function ScreenGallery() {
   const groups = [
@@ -12,11 +13,17 @@ export function ScreenGallery() {
     ['profile', 'Cá nhân'],
   ] as const;
   return (
-    <Screen title="Màn hình wireframe">
+    <Screen title="Danh mục màn hình">
       <T muted size={12}>
         Danh mục đối chiếu các màn hình với node Figma. Chọn một màn để xem trực tiếp.
       </T>
-      <Gap size={24} />
+      <Gap size={12} />
+      <Button
+        label="❖ Thư viện Components (Design System 8:2)"
+        icon="box"
+        onPress={() => go('components')}
+      />
+      <Gap size={20} />
       {groups.map(([group, title]) => (
         <View key={group}>
           <Section title={title} />
@@ -38,7 +45,13 @@ export function ScreenGallery() {
                       /{id === 'splash' ? '' : id}
                     </T>
                   </View>
-                  <Badge>{meta.node || 'Bổ sung'}</Badge>
+                  <Badge>
+                    {uiSources[id]
+                      ? `UI · ${uiSources[id]}`
+                      : meta.node
+                        ? `Wireframe · ${meta.node}`
+                        : 'Bổ sung'}
+                  </Badge>
                 </Row>
               </Card>
             ))}

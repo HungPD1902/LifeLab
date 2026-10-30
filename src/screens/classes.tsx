@@ -7,6 +7,8 @@ import {
   Button,
   Card,
   Chips,
+  Checkbox,
+  SearchField,
   Dialog,
   Empty,
   Field,
@@ -24,20 +26,25 @@ import {
   Segments,
   S,
   Stats,
+  StatsRow,
   T,
   TextButton,
 } from '../components/ui';
-import { MemberRow, RankingContent, TaskCard } from '../components/content';
+import { ClassCard, MemberRow, RankingContent, TaskCard } from '../components/content';
 import { members, tasks } from '../data/content';
 import type { ScreenId } from '../data/screens';
 import { back, go } from '../navigation';
 import { useDemo } from '../state/demo';
+import { useDesign, usePalette } from '../design-system/theme';
+import { themeColors } from '../design-system/tokens';
 
 export function ClassesScreen() {
   const { currentClass, savedClasses } = useDemo();
   return currentClass || savedClasses.length ? <ClassList /> : <ClassEmpty />;
 }
 function ClassEmpty() {
+  const palette = usePalette();
+  const design = useDesign();
   return (
     <Screen
       title="Lớp học"
@@ -45,41 +52,74 @@ function ClassEmpty() {
       onBack={() => go('home', {}, true)}
       right={<IconButton name="grid" label="Xem các lớp mẫu" onPress={() => go('classes-list')} />}
     >
-      <Gap size={24} />
-      <View style={{ width: 200, alignSelf: 'center' }}>
-        <Placeholder height={200} style={{ borderRadius: 42 }} />
-      </View>
-      <Gap />
-      <T bold center>
+      <Gap size={8} />
+      {design ? (
+        <View
+          style={{
+            width: 170,
+            height: 170,
+            borderRadius: 36,
+            backgroundColor: themeColors.primaryLight,
+            alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: themeColors.border,
+          }}
+        >
+          <Icon name="users" size={56} color={themeColors.primary} />
+        </View>
+      ) : (
+        <View style={{ width: 206, alignSelf: 'center' }}>
+          <Placeholder height={206} style={{ borderRadius: 42 }} />
+        </View>
+      )}
+      <Gap size={18} />
+      <T bold center size={17}>
         Bạn chưa có lớp học nào
       </T>
-      <Gap size={5} />
-      <T muted size={12} center>
-        Tham gia hoặc tạo một lớp mới để bắt đầu{`\n`}học cùng mọi người ngay thôi nào!
+      <Gap size={6} />
+      <T muted size={13} center>
+        Tham gia hoặc tạo một lớp mới để bắt đầu{`\n`}học cùng thầy cô và bạn bè ngay thôi nào!
       </T>
       <Gap size={24} />
       <ClassActions />
-      <Gap size={50} />
-      <View style={{ padding: 14, backgroundColor: '#eee', marginHorizontal: -20 }}>
+      <Gap size={32} />
+      <View>
         <Section title="Gợi ý lớp học" />
-        {['Kỹ năng sống A1', 'Kỹ năng sống A2'].map((name) => (
-          <Card key={name} style={{ borderRadius: 2, padding: 12, marginBottom: 10 }}>
+        {['Kỹ năng sống 8A', 'Kỹ năng sống 8B'].map((name) => (
+          <Card
+            key={name}
+            style={{
+              padding: 14,
+              marginBottom: 10,
+              borderColor: palette.line,
+              backgroundColor: palette.cardBg,
+            }}
+          >
             <Row>
-              <View style={{ width: 30, height: 30, backgroundColor: '#ddd' }} />
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: themeColors.primaryLight,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                }}
+              >
+                <Icon name="book" size={20} color={themeColors.primary} />
+              </View>
               <View style={{ flex: 1 }}>
-                <T bold size={12}>
+                <T bold size={14}>
                   {name}
                 </T>
-                <T muted size={10}>
-                  Kỹ năng sống mỗi ngày
+                <T muted size={11}>
+                  Số lượng thành viên: 12/24
                 </T>
               </View>
-              <Button
-                small
-                label="Tham gia"
-                variant="soft"
-                onPress={() => go('class-request', { name })}
-              />
+              <Button small label="Tham gia" onPress={() => go('class-request', { name })} />
             </Row>
           </Card>
         ))}
@@ -90,19 +130,13 @@ function ClassEmpty() {
 function ClassActions() {
   return (
     <Row>
+      <Button style={{ flex: 1 }} label="Tham gia" icon="log-in" onPress={() => go('class-join')} />
       <Button
         style={{ flex: 1 }}
         label="Tạo lớp"
         icon="plus"
-        variant="soft"
-        onPress={() => go('class-create')}
-      />
-      <Button
-        style={{ flex: 1 }}
-        label="Tham gia lớp"
-        icon="log-in"
         variant="outline"
-        onPress={() => go('class-join')}
+        onPress={() => go('class-create')}
       />
     </Row>
   );
@@ -139,33 +173,15 @@ function ClassList() {
               (filter === 'Lớp của tôi' ? c.role === 'owner' : c.role === 'member'),
           )
           .map((c) => (
-            <Card
+            <ClassCard
               key={c.name}
+              name={c.name}
+              role={c.role}
               onPress={() => {
                 setCurrentClass(c);
                 go(c.role === 'owner' ? 'class-detail' : 'class-joined');
               }}
-              style={{ padding: 12, backgroundColor: '#fafafa' }}
-            >
-              <Row>
-                <View
-                  style={{ width: 62, height: 62, backgroundColor: '#aaa', borderRadius: 12 }}
-                />
-                <View style={{ flex: 1, gap: 4 }}>
-                  <T bold size={13}>
-                    {c.name}
-                  </T>
-                  <Badge>{c.role === 'owner' ? 'Lớp của tôi' : 'Đã tham gia'}</Badge>
-                  <T muted size={10}>
-                    {c.role === 'owner' ? '12 thành viên · 8 nhiệm vụ' : c.description}
-                  </T>
-                  <T muted size={10}>
-                    ◉ ◉ ◉ +8
-                  </T>
-                </View>
-                <Icon name="chevron-right" size={16} color="#aaa" />
-              </Row>
-            </Card>
+            />
           ))}
       </View>
     </Screen>
@@ -253,15 +269,15 @@ function CreateClass({ success }: { success: boolean }) {
             Thiết lập số lượng người tối đa trong lớp
           </T>
         </View>
-        <Switch
+        <Checkbox
+          label=""
           accessibilityLabel="Giới hạn thành viên"
-          value={limit}
-          onValueChange={setLimit}
-          trackColor={{ false: '#ddd', true: '#555' }}
+          checked={limit}
+          onChange={setLimit}
         />
       </Row>
       {limit && <Field label="Số thành viên tối đa" placeholder="32" keyboardType="number-pad" />}
-      <Gap size={70} />
+      <Gap size={20} />
       <Section title="Cài đặt lớp" />
       <Radio
         label="Công khai"
@@ -296,15 +312,23 @@ function JoinClass({ id }: { id: ScreenId }) {
     return (
       <Screen title="Tham gia lớp" onBack={() => back('classes')}>
         <Gap size={65} />
-        <View style={{ alignItems: 'center', gap: 24 }}>
-          <View style={{ padding: 30, borderRadius: 40, backgroundColor: '#f5f5f5' }}>
-            <Icon name="maximize" size={50} color="#999" />
+        <View style={{ alignItems: 'center', gap: 20 }}>
+          <View
+            style={{
+              padding: 28,
+              borderRadius: 36,
+              backgroundColor: themeColors.primaryLight,
+              borderWidth: 1,
+              borderColor: themeColors.border,
+            }}
+          >
+            <Icon name="maximize" size={48} color={themeColors.primary} />
           </View>
-          <T bold center>
+          <T bold center size={18}>
             Nhập mã lớp để tham gia
           </T>
           <T size={13} muted center>
-            Mã lớp thường gồm 6 ký tự, do người{`\n`}tạo lớp cung cấp.
+            Mã lớp thường gồm 6 ký tự, do thầy cô hoặc{`\n`}người tạo lớp cung cấp.
           </T>
         </View>
         <Gap size={75} />
@@ -372,8 +396,16 @@ function JoinClass({ id }: { id: ScreenId }) {
     >
       <Gap size={24} />
       <View style={{ alignItems: 'center', gap: 10 }}>
-        <View style={{ padding: 23, backgroundColor: '#eee', borderRadius: 18 }}>
-          <Icon name="users" size={35} color="#999" />
+        <View
+          style={{
+            padding: 24,
+            backgroundColor: themeColors.primaryLight,
+            borderRadius: 22,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+          }}
+        >
+          <Icon name="users" size={38} color={themeColors.primary} />
         </View>
         <T bold size={19}>
           {name}
@@ -421,6 +453,8 @@ function ClassDetail({ joined, leave }: { joined: boolean; leave: boolean }) {
   const [copied, setCopied] = useState(false);
   const member = joined || leave;
   const className = currentClass?.name || 'Kỹ năng sống 8A';
+  const design = useDesign();
+  const palette = usePalette();
   return (
     <Screen
       title="Thông tin lớp"
@@ -434,41 +468,48 @@ function ClassDetail({ joined, leave }: { joined: boolean; leave: boolean }) {
         />
       }
     >
-      <Card style={{ backgroundColor: '#fafafa', gap: 8 }}>
-        <Row between>
-          <T bold size={17}>
-            {className}
-          </T>
-          {!member && <TextButton label="Quản lý lớp" onPress={() => go('class-settings')} />}
-        </Row>
-        {member ? (
-          <>
-            <T muted size={12}>
-              Giáo viên: Nguyễn Thị Lan
+      {design ? (
+        <ClassCard name={className} />
+      ) : (
+        <Card style={{ backgroundColor: design ? palette.light : '#fafafa', gap: 8 }}>
+          <Row between>
+            <T bold size={17}>
+              {className}
             </T>
-            <T muted size={11}>
-              ♧ 32 thành viên
-            </T>
-          </>
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Xem mã lớp"
-            onPress={() => setCopied(true)}
-          >
-            <T muted size={11}>
-              ↗ Mã lớp: ABC123 ♧ 32 thành viên
-            </T>
-          </Pressable>
-        )}
-      </Card>
+            {!member && <TextButton label="Quản lý lớp" onPress={() => go('class-settings')} />}
+          </Row>
+          {member ? (
+            <>
+              <T muted size={12}>
+                Giáo viên: Nguyễn Thị Lan
+              </T>
+              <T muted size={11}>
+                ♧ 32 thành viên
+              </T>
+            </>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Xem mã lớp"
+              onPress={() => setCopied(true)}
+            >
+              <T muted size={11}>
+                ↗ Mã lớp: ABC123 ♧ 32 thành viên
+              </T>
+            </Pressable>
+          )}
+        </Card>
+      )}
       <Gap />
-      <Row between style={{ borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 12 }}>
+      <Row
+        between
+        style={{ borderBottomWidth: 1, borderBottomColor: palette.line, paddingBottom: 12 }}
+      >
         {[
           ['Tổng quan', ''],
           ['Nhiệm vụ', member ? 'class-tasks-member' : 'class-tasks'],
           ['Thành viên', member ? 'class-members-view' : 'class-members'],
-          ['BXH', 'class-ranking'],
+          [design ? 'Xếp hạng' : 'BXH', 'class-ranking'],
         ].map(([label, target]) => (
           <Pressable
             key={label}
@@ -529,12 +570,16 @@ function ClassDetail({ joined, leave }: { joined: boolean; leave: boolean }) {
           <Stats
             data={[
               { value: '32', label: 'Thành viên', onPress: () => go('class-members') },
-              { value: '5', label: 'Nhiệm vụ hoạt động', onPress: () => go('class-tasks') },
+              {
+                value: '5',
+                label: design ? 'Nhiệm vụ' : 'Nhiệm vụ hoạt động',
+                onPress: () => go('class-tasks'),
+              },
             ]}
           />
           <Gap size={12} />
           <Card style={{ padding: 12 }}>
-            <Progress value={68} label="Tiến độ lớp học" />
+            <Progress value={design ? 65 : 68} label="Tiến độ lớp học" />
           </Card>
         </>
       )}
@@ -581,6 +626,7 @@ function MembersScreen({ id }: { id: ScreenId }) {
   const { pendingMembers, setPendingMembers } = useDemo();
   const params = useLocalSearchParams<{ name?: string }>();
   const [query, setQuery] = useState('');
+  const design = useDesign();
   const readOnly = id === 'class-members-view';
   const pending = ['class-pending', 'class-accept', 'class-reject', 'class-pending-empty'].includes(
     id,
@@ -594,9 +640,14 @@ function MembersScreen({ id }: { id: ScreenId }) {
   };
   return (
     <Screen title="Thành viên" onBack={() => back(readOnly ? 'class-joined' : 'class-detail')}>
-      <Field placeholder="Tìm thành viên" value={query} onChangeText={setQuery} />
+      {design ? (
+        <SearchField label="Tìm kiếm thành viên" value={query} onChangeText={setQuery} />
+      ) : (
+        <Field placeholder="Tìm thành viên" value={query} onChangeText={setQuery} />
+      )}
       {!readOnly && (
         <Segments
+          variant={design ? 'underline' : 'pill'}
           options={['Thành viên (32)', 'Chờ duyệt (3)']}
           value={pending ? 'Chờ duyệt (3)' : 'Thành viên (32)'}
           onChange={(v) => go(v.startsWith('Chờ') ? 'class-pending' : 'class-members', {}, true)}
@@ -689,7 +740,7 @@ function MemberDetail() {
   const { name = 'Nguyễn Văn An', role } = useLocalSearchParams<{ name?: string; role?: string }>();
   return (
     <Screen
-      title="Chi tiết thành viên"
+      title="Thành viên"
       onBack={() => back(role === 'member' ? 'class-members-view' : 'class-members')}
     >
       <Card>
@@ -712,9 +763,24 @@ function MemberDetail() {
         ]}
       />
       <Gap size={24} />
-      <Section title="Tiến độ tổng" />
-      <Progress value={60} label="Tiến độ" />
-      <Gap size={24} />
+      <Card style={{ padding: 12, gap: 8 }}>
+        <T size={14}>Tiến độ tổng</T>
+        <Row between>
+          <T muted size={12}>
+            5/10 nhiệm vụ đã hoàn thành
+          </T>
+          <T size={12}>50%</T>
+        </Row>
+        <Progress value={50} />
+        <Row between>
+          <T size={9}>✓ 5 Hoàn thành</T>
+          <T size={9}>● 3 Đang học</T>
+          <T muted size={9}>
+            ● 2 Chưa học
+          </T>
+        </Row>
+      </Card>
+      <Gap size={20} />
       <Section title="Lịch sử nhiệm vụ" />
       {['Chuẩn bị bữa sáng', 'Dọn dẹp phòng ngủ', 'Tự sơ cứu vết thương'].map((t, i) => (
         <MenuRow
@@ -876,13 +942,7 @@ function ClassTaskScreen({ id }: { id: ScreenId }) {
             <Section title="Tiến độ lớp học" />
             <Progress value={60} label="60% hoàn thành — 12/20" />
             <Gap />
-            <Stats
-              data={[
-                { value: '5', label: 'Chưa bắt đầu' },
-                { value: '3', label: 'Đang làm' },
-                { value: '12', label: 'Hoàn thành' },
-              ]}
-            />
+            <StatsRow completed={12} inProgress={3} notStarted={5} />
           </>
         ) : (
           <>

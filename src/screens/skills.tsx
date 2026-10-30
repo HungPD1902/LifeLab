@@ -1,16 +1,15 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import {
-  Badge,
   Button,
   Card,
-  C,
   Gap,
   Icon,
   IconButton,
-  Notice,
-  Placeholder,
+  Chips,
+  Empty,
+  SearchField,
   Progress,
   Row,
   Screen,
@@ -19,8 +18,19 @@ import {
   Stats,
   T,
 } from '../components/ui';
-import { CategoryGrid } from '../components/content';
-import { categories, lessons } from '../data/content';
+import { usePalette } from '../design-system/theme';
+import { themeColors } from '../design-system/tokens';
+import { skills } from '../data/skills';
+import {
+  CategoryGrid,
+  LearnResultItem,
+  LessonItem,
+  ScenarioDialogueBox,
+  SkillCard,
+  StarScoreBanner,
+  TaskCard,
+} from '../components/content';
+import { categories, lessons, tasks } from '../data/content';
 import type { ScreenId } from '../data/screens';
 import { back, go } from '../navigation';
 
@@ -31,61 +41,80 @@ export function LibraryScreen() {
       tabs="skills"
       onBack={() => go('home', {}, true)}
       right={
-        <IconButton
-          name="more-horizontal"
-          label="Danh sách màn hình"
-          onPress={() => go('screens')}
-        />
+        <IconButton name="search" label="Tìm kiếm kỹ năng" onPress={() => go('skill-search')} />
       }
     >
       <CategoryGrid />
       <Gap size={24} />
       <Section title="Gợi ý cho bạn" action="Xem tất cả" onPress={() => go('suggestions')} />
-      <View style={S.grid}>
-        {[
-          ['Nấu ăn cơ bản', 'Học cách nấu những món đơn giản.', 'Tự lập', 'coffee'],
-          ['Sơ cứu vết thương', 'Xử lý vết thương nhẹ tại nhà.', 'Sức khỏe', 'activity'],
-        ].map(([title, desc, cat, icon]) => (
-          <Card
-            key={title}
-            label={title}
-            onPress={() => go('skill-detail', { title })}
-            style={{ flex: 1, padding: 12, gap: 8, backgroundColor: '#fafafa' }}
-          >
-            <Row>
-              <Icon name={icon} color="#999" />
-              <Badge>{cat}</Badge>
-            </Row>
-            <T bold size={13}>
-              {title}
-            </T>
-            <T muted size={11}>
-              {desc}
-            </T>
-            <Gap size={6} />
-            <T muted size={10}>
-              Chưa bắt đầu
-            </T>
-          </Card>
+      <View style={{ gap: 8 }}>
+        {[skills[0], skills[2]].map((skill) => (
+          <SkillCard
+            key={skill.title}
+            {...skill}
+            onPress={() => go('skill-detail', { title: skill.title })}
+          />
         ))}
       </View>
-      <Gap size={18} />
-      <Card style={{ padding: 12, backgroundColor: '#eee' }}>
-        <Row>
-          <Icon name="wind" color="#777" />
-          <View style={{ flex: 1 }}>
-            <T muted size={9}>
-              ĐANG HỌC
-            </T>
-            <T bold size={12}>
-              An toàn khi có cháy
-            </T>
-            <Progress value={65} height={4} />
-          </View>
-          <Button label="Tiếp tục" small onPress={() => go('skill-detail')} />
-        </Row>
-      </Card>
     </Screen>
+  );
+}
+function SkillSearch() {
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('Tất cả');
+  const normalize = (value: string) =>
+    value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .toLowerCase();
+  const searchTasks = [
+    tasks[1],
+    { ...tasks[1], id: 'first-aid', title: 'Sơ cứu vết trầy xước', category: 'Sức khỏe' },
+    tasks[0],
+  ];
+  const visible = searchTasks.filter(
+    (skill) =>
+      (category === 'Tất cả' || skill.category === category) &&
+      normalize(skill.title).includes(normalize(query.trim())),
+  );
+  return (
+    <Screen title="Tìm kiếm" tabs="skills" onBack={() => back('skills')}>
+      <SearchField label="Tìm kiếm kỹ năng" value={query} onChangeText={setQuery} />
+      <Chips
+        options={['Tất cả', 'Tự lập', 'An toàn', 'Sức khỏe', 'Xã hội']}
+        value={category}
+        onChange={setCategory}
+        small
+      />
+      <View style={{ gap: 8 }}>
+        {visible.map((skill) => (
+          <TaskCard
+            key={skill.title}
+            task={skill}
+            suggestion
+            onPress={() => go('skill-detail', { title: skill.title, category: skill.category })}
+          />
+        ))}
+      </View>
+      {!visible.length && (
+        <Empty
+          icon="search"
+          title="Không tìm thấy kỹ năng"
+          description="Thử từ khóa hoặc danh mục khác."
+        />
+      )}
+    </Screen>
+  );
+}
+function SkillArtwork({ height }: { height: number }) {
+  return (
+    <Image
+      source={require('../../assets/figma/onboarding-image-source.png')}
+      accessibilityLabel="Ảnh minh họa đang chờ thiết kế"
+      resizeMode="cover"
+      style={{ width: '100%', height, borderRadius: 8 }}
+    />
   );
 }
 export function SkillScreen({ id }: { id: ScreenId }) {
@@ -93,43 +122,23 @@ export function SkillScreen({ id }: { id: ScreenId }) {
   const category = categories.find((c) => c.name === params.category) ?? categories[1];
   const title = params.title || 'An toàn khi có cháy';
   const [saved, setSaved] = useState(false);
-  const [notice, setNotice] = useState(false);
+  const [quizChoice, setQuizChoice] = useState<number | null>(null);
+  const palette = usePalette();
+  if (id === 'skill-search') return <SkillSearch />;
   if (id === 'skill-category') {
-    const names =
-      category.name === 'An toàn'
-        ? [
-            'An toàn khi có cháy',
-            'An toàn khi ở nhà một mình',
-            'An toàn giao thông',
-            'An toàn trên Internet',
-          ]
-        : category.name === 'Tự lập'
-          ? [
-              'Nấu ăn cơ bản',
-              'Lập kế hoạch chi tiêu cá nhân',
-              'Tự chuẩn bị bữa sáng',
-              'Sắp xếp góc học tập',
-            ]
-          : category.name === 'Sức khỏe'
-            ? ['Sơ cứu vết trầy xước', 'Ăn uống lành mạnh', 'Vệ sinh cá nhân', 'Vận động mỗi ngày']
-            : [
-                'Lắng nghe để hiểu bạn',
-                'Kỹ năng giao tiếp nhóm',
-                'Chia sẻ và hợp tác',
-                'Ứng xử lịch sự',
-              ];
+    const visible = skills.filter((skill) => skill.category === category.name);
     return (
       <Screen
-        title={category.name}
+        title="Thư viện"
         tabs="skills"
         onBack={() => go('skills', {}, true)}
         right={
-          <IconButton name="search" label="Tìm kiếm kỹ năng" onPress={() => setNotice(true)} />
+          <IconButton name="search" label="Tìm kiếm kỹ năng" onPress={() => go('skill-search')} />
         }
       >
-        <Card style={{ backgroundColor: '#f3f3f3', gap: 14 }}>
+        <Card style={{ backgroundColor: palette.light, gap: 14 }}>
           <Row>
-            <View style={{ padding: 13, borderRadius: 30, backgroundColor: '#aaa' }}>
+            <View style={{ padding: 13, borderRadius: 30, backgroundColor: palette.fill }}>
               <Icon name={category.icon} color="#fff" size={25} />
             </View>
             <View style={{ flex: 1 }}>
@@ -149,40 +158,14 @@ export function SkillScreen({ id }: { id: ScreenId }) {
         <Gap size={22} />
         <Section title="Danh sách kỹ năng" />
         <View style={{ gap: 10 }}>
-          {names.map((name, i) => (
-            <Card
-              key={name}
-              label={name}
-              onPress={() => go('skill-detail', { title: name, category: category.name })}
-              style={{ padding: 13, gap: 7 }}
-            >
-              <Row between>
-                <View style={{ flex: 1 }}>
-                  <T bold>{name}</T>
-                  <T muted size={11}>
-                    {i === 0 ? 'Nhận biết và xử lý tình huống nguy hiểm' : category.description}
-                  </T>
-                </View>
-                <Icon name="chevron-right" color="#aaa" size={16} />
-              </Row>
-              <Row>
-                <Progress value={[65, 100, 0, 30][i]} height={5} />
-                <T muted size={10}>
-                  {[65, 100, 0, 30][i]}%
-                </T>
-                <Badge dark={i === 1}>
-                  {i === 1 ? 'Hoàn thành' : i === 2 ? 'Chưa học' : 'Đang học'}
-                </Badge>
-              </Row>
-            </Card>
+          {visible.map((skill) => (
+            <SkillCard
+              key={skill.title}
+              {...skill}
+              onPress={() => go('skill-detail', { title: skill.title, category: category.name })}
+            />
           ))}
         </View>
-        <Notice
-          visible={notice}
-          title="Tìm kỹ năng"
-          description="Chọn một kỹ năng trong danh sách để xem nội dung và bắt đầu học."
-          onClose={() => setNotice(false)}
-        />
       </Screen>
     );
   }
@@ -201,7 +184,7 @@ export function SkillScreen({ id }: { id: ScreenId }) {
         }
         footer={<Button label="Bắt đầu học" onPress={() => go('lesson-1', { title })} />}
       >
-        <Placeholder icon="wind" label="MINH HỌA KỸ NĂNG" height={126} dashed />
+        <SkillArtwork height={100} />
         <Gap size={8} />
         <T muted size={12}>
           Luyện tập bằng nhiệm vụ, tìm lối thoát và gọi trợ giúp an toàn qua các tình huống trong
@@ -216,67 +199,27 @@ export function SkillScreen({ id }: { id: ScreenId }) {
         </Row>
         <Gap size={22} />
         <Section title="Bạn sẽ học được" />
-        {[
-          'Nhận biết nguy cơ cháy',
-          'Biết cách xử lý khi phát hiện cháy',
-          'Biết cách tìm lối thoát hiểm',
-          'Biết cách gọi trợ giúp',
-        ].map((t) => (
-          <Row key={t} style={{ marginBottom: 10 }}>
-            <Icon name="check-square" size={16} color="#777" />
-            <T size={13} muted>
-              {t}
-            </T>
-          </Row>
-        ))}
-        <Gap />
+        <View style={{ gap: 4, marginBottom: 12 }}>
+          {[
+            'Nhận biết nguy cơ cháy',
+            'Biết cách xử lý khi phát hiện cháy',
+            'Biết cách tìm lối thoát hiểm',
+            'Biết cách gọi trợ giúp an toàn',
+          ].map((t) => (
+            <LearnResultItem key={t} text={t} />
+          ))}
+        </View>
+        <Gap size={8} />
         <Section title="Bài học" />
         <View style={{ gap: 8 }}>
           {lessons.map((lesson, i) => (
-            <Card
+            <LessonItem
               key={lesson}
-              label={lesson}
+              index={i + 1}
+              title={i === 0 ? 'Nhận biết' : i === 3 ? 'Kiểm tra' : lesson}
+              status={i === 0 ? 'completed' : i === 1 ? 'in_progress' : 'locked'}
               onPress={() => go(`lesson-${i + 1}` as ScreenId, { title })}
-              style={{
-                padding: 12,
-                backgroundColor: i === 0 ? '#eee' : i > 1 ? '#fafafa' : '#fff',
-                borderColor: i === 1 ? '#555' : C.line,
-              }}
-            >
-              <Row>
-                <View
-                  style={{
-                    width: 23,
-                    height: 23,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: '#aaa',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: i === 0 ? C.ink : '#fff',
-                  }}
-                >
-                  {i === 0 ? (
-                    <Icon name="check" size={14} color="#fff" />
-                  ) : (
-                    <T size={12}>{i + 1}</T>
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <T bold size={12}>
-                    {i === 0 ? 'Nhận biết' : i === 3 ? 'Kiểm tra' : lesson}
-                  </T>
-                  <T muted size={10}>
-                    {i === 0 ? 'Đã hoàn thành' : i === 1 ? 'Đang học' : 'Chưa mở'}
-                  </T>
-                </View>
-                <Icon
-                  name={i === 0 ? 'check-circle' : i === 1 ? 'play' : 'lock'}
-                  size={15}
-                  color="#999"
-                />
-              </Row>
-            </Card>
+            />
           ))}
         </View>
       </Screen>
@@ -299,38 +242,31 @@ export function SkillScreen({ id }: { id: ScreenId }) {
           </>
         }
       >
-        <Gap size={35} />
-        <T center muted size={11}>
-          ĐIỂM CỦA BẠN
-        </T>
-        <T center size={50} bold>
-          80
-        </T>
-        <T center muted size={12}>
-          ♧ Điểm tốt nhất: 80/100
-        </T>
-        <Gap size={5} />
-        <T center muted size={12}>
-          Bạn đã hoàn thành Bài 3: Xử lý tình huống
-        </T>
-        <Gap size={22} />
+        <StarScoreBanner
+          score={80}
+          maxScore={100}
+          stars={80}
+          shards={20}
+          lessonTitle="Bài 3: Xử lý tình huống"
+        />
+        <Gap size={14} />
         <Stats
           data={[
             { value: '8/10', label: 'Câu đúng' },
             { value: '2', label: 'Câu chưa đúng' },
-            { value: '04:32', label: 'Thời gian' },
+            { value: '04:30', label: 'Thời gian' },
           ]}
         />
-        <Gap size={22} />
+        <Gap size={18} />
         <Section title="Kết quả học tập" />
-        <Card style={{ backgroundColor: '#f7f7f7', gap: 14 }}>
+        <Card style={{ backgroundColor: palette.light, gap: 14 }}>
           {[
-            'Học được cách cần thoát hiểm.',
-            'Lựa chọn hành động an toàn trong từng tình huống.',
+            'Học được cách thoát hiểm an toàn khi có khói độc.',
+            'Lựa chọn hành động chuẩn xác trong từng tình huống khẩn cấp.',
             'Bạn có thể xem lại các tình huống chưa chọn đúng.',
           ].map((t) => (
             <Row key={t}>
-              <Icon name="check-circle" size={16} color="#999" />
+              <Icon name="check-circle" size={16} color={themeColors.successText} />
               <T size={12} style={{ flex: 1 }}>
                 {t}
               </T>
@@ -341,18 +277,27 @@ export function SkillScreen({ id }: { id: ScreenId }) {
         <Section title="Phần thưởng nhận được" />
         <Stats
           data={[
-            { value: '+80 XP', label: 'Sao' },
-            { value: '+15 mảnh', label: 'Tiến hóa mascot' },
+            { value: '+80 sao', label: 'Sao xếp hạng' },
+            { value: '+20 mảnh', label: 'Tiến hóa mascot' },
           ]}
         />
         <Gap />
-        <Section title="Tiến độ bài học" />
+        <Section title="Tiến độ chuyên đề" />
         <Card>
           <Row between>
             {[1, 2, 3, 4].map((i) => (
               <View key={i} style={{ alignItems: 'center', gap: 6 }}>
-                <Icon name={i < 4 ? 'check-circle' : 'lock'} color={i < 4 ? C.ink : '#aaa'} />
-                <T size={10}>Bài {i}</T>
+                <Icon
+                  name={i <= 3 ? 'check-circle' : 'lock'}
+                  color={i <= 3 ? themeColors.primary : palette.muted}
+                />
+                <T
+                  bold={i === 3}
+                  size={11}
+                  style={{ color: i <= 3 ? themeColors.primary : palette.muted }}
+                >
+                  Bài {i}
+                </T>
               </View>
             ))}
           </Row>
@@ -380,17 +325,42 @@ export function SkillScreen({ id }: { id: ScreenId }) {
   return (
     <Screen
       title={lessons[step - 1]}
-      subtitle={`BÀI ${step}`}
+      subtitle={`Bài ${step}`}
       onBack={() => back('skill-detail')}
       footer={
         <Button
-          label={step === 4 ? 'Kiểm tra' : 'Bắt đầu'}
-          onPress={() => go(step === 4 ? 'result' : (`lesson-${step + 1}` as ScreenId), { title })}
+          label={step === 4 ? 'Kiểm tra' : 'Bắt đầu học'}
+          onPress={() => go(step >= 4 ? 'result' : (`lesson-${step + 1}` as ScreenId), { title })}
         />
       }
     >
-      {step === 4 ? (
-        <Card style={{ borderStyle: 'dashed', backgroundColor: '#fafafa' }}>
+      {step === 3 ? (
+        <View style={{ gap: 14 }}>
+          <ScenarioDialogueBox
+            speaker="LifeLab Bạn đồng hành"
+            dialogue="Khói qua khe cửa rồi... Mình nên làm gì bây giờ?"
+            selectedIndex={quizChoice}
+            onSelect={setQuizChoice}
+            choices={[
+              {
+                text: 'Dùng khăn ướt bịt mũi miệng, cúi thấp người men theo tường thoát ra ngoài',
+                correct: true,
+              },
+              {
+                text: 'Mở toang cửa sổ và nhảy xuống đất ngay lập tức',
+                correct: false,
+              },
+              {
+                text: 'Trốn vào gầm giường hoặc tủ quần áo đóng kín',
+                correct: false,
+              },
+            ]}
+            explanation="Khói và khí độc bốc lên cao rất nguy hiểm. Dùng khăn ướt giúp lọc bớt khói và làm mát không khí, cúi thấp người sát sàn giúp hít thở không khí sạch hơn để thoát ra ngoài an toàn!"
+          />
+          <Gap size={8} />
+        </View>
+      ) : step === 4 ? (
+        <Card style={{ borderStyle: 'dashed', backgroundColor: palette.light }}>
           <T center muted size={10}>
             TỔNG HỢP KIẾN THỨC PHÒNG CHÁY CHỮA CHÁY
           </T>
@@ -404,7 +374,7 @@ export function SkillScreen({ id }: { id: ScreenId }) {
               ['Đám cháy', 'wind'],
             ].map(([label, icon]) => (
               <Card key={label} style={{ width: '30%', padding: 10, alignItems: 'center', gap: 8 }}>
-                <Icon name={icon} color="#888" />
+                <Icon name={icon} color={palette.strong} />
                 <T center size={8}>
                   {label}
                 </T>
@@ -413,7 +383,7 @@ export function SkillScreen({ id }: { id: ScreenId }) {
           </View>
         </Card>
       ) : (
-        <Placeholder icon="wind" label="MINH HỌA GAME" height={130} dashed />
+        <SkillArtwork height={100} />
       )}
       <Gap size={23} />
       <Row>
@@ -429,7 +399,7 @@ export function SkillScreen({ id }: { id: ScreenId }) {
         <>
           <Card style={{ gap: 14 }}>
             <T bold size={13}>
-              CÁCH CHƠI
+              Cách chơi
             </T>
             {instructions.map((text, i) => (
               <Row key={text}>
@@ -454,7 +424,7 @@ export function SkillScreen({ id }: { id: ScreenId }) {
           </Card>
           <Gap />
           <T muted bold size={10}>
-            THÔNG TIN TRÒ CHƠI
+            Thông tin trò chơi
           </T>
           <Gap size={8} />
         </>
@@ -462,16 +432,16 @@ export function SkillScreen({ id }: { id: ScreenId }) {
       <Card style={{ padding: 12 }}>
         <Row between>
           {[
-            ['clock', '5 phút', 'Thời gian'],
+            ['clock', step === 2 ? '1 phút' : '5 phút', 'Thời gian'],
             [
               'bar-chart-2',
               step === 4 ? '5–10 câu' : '●●○',
               step === 4 ? 'Số lượng' : 'Độ khó: Vừa',
             ],
-            ['star', '+10 XP | +1 Sao', 'Phần thưởng'],
+            ['star', `${[12, 12, 20, 15][step - 1]} mảnh`, 'Phần thưởng'],
           ].map(([icon, value, label]) => (
             <View key={label} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-              <Icon name={icon} size={14} color="#888" />
+              <Icon name={icon} size={14} color={palette.strong} />
               <T bold size={10}>
                 {value}
               </T>

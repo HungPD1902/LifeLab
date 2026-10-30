@@ -39,9 +39,9 @@ test('onboarding, registration and four main tabs navigate', async ({ page }) =>
   await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
   await expect(page).toHaveURL(/\/home$/);
   for (const [tab, path] of [
-    ['Kỹ năng', '/skills'],
+    ['Thư viện', '/skills'],
     ['Lớp học', '/classes'],
-    ['Cá nhân', '/profile'],
+    ['Hồ sơ', '/profile'],
     ['Trang chủ', '/home'],
   ]) {
     await page.getByRole('tab', { name: tab, exact: true }).click();
@@ -61,11 +61,21 @@ test('task filter and all four lessons lead to results', async ({ page }) => {
   ).toHaveCount(0);
   await page.goto('/skills');
   await page.getByRole('button', { name: 'An toàn', exact: true }).click();
-  await page.getByRole('button', { name: 'An toàn khi có cháy', exact: true }).click();
+  await expect(page).toHaveURL(/skill-category/);
+  await page
+    .getByRole('button', { name: 'An toàn khi có cháy', exact: true })
+    .filter({ visible: true })
+    .click();
   await page.getByRole('button', { name: 'Bắt đầu học', exact: true }).click();
   for (const step of [1, 2, 3]) {
     await expect(page).toHaveURL(new RegExp(`lesson-${step}`));
-    await page.getByRole('button', { name: 'Bắt đầu', exact: true }).click();
+    await expect(
+      page.getByText(`Bài ${step}`, { exact: true }).filter({ visible: true }),
+    ).toBeVisible();
+    await page
+      .getByRole('button', { name: 'Bắt đầu học', exact: true })
+      .filter({ visible: true })
+      .click();
   }
   await page.getByRole('button', { name: 'Kiểm tra', exact: true }).click();
   await expect(page).toHaveURL(/result/);
@@ -145,7 +155,7 @@ test('join code validation, request success, equipment and profile edit', async 
     page.getByText('Gửi yêu cầu thành công', { exact: true }).filter({ visible: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Về lớp học', exact: true }).click();
-  await page.getByRole('tab', { name: 'Cá nhân', exact: true }).click();
+  await page.getByRole('tab', { name: 'Hồ sơ', exact: true }).click();
   await page.getByRole('button', { name: 'Bộ sưu tập', exact: true }).click();
   await page.getByRole('button', { name: 'Trang bị', exact: true }).click();
   await expect(
@@ -177,14 +187,14 @@ test('every route renders without runtime errors or horizontal overflow', async 
   expect(errors).toEqual([]);
 });
 
-test('capture the four main screens at wireframe size', async ({ page }) => {
+test('capture the four main UI screens at design size', async ({ page }) => {
   mkdirSync('docs/preview', { recursive: true });
   await page.setViewportSize({ width: 390, height: 844 });
   for (const name of ['home', 'skills', 'classes', 'profile']) {
     await page.goto('/' + name);
     await page
       .getByRole('tab', {
-        name: { home: 'Trang chủ', skills: 'Kỹ năng', classes: 'Lớp học', profile: 'Cá nhân' }[
+        name: { home: 'Trang chủ', skills: 'Thư viện', classes: 'Lớp học', profile: 'Hồ sơ' }[
           name
         ]!,
         exact: true,
@@ -213,7 +223,7 @@ test('regression: selecting a member class keeps the owner class in the list', a
 test('regression: mascot selection is preserved in customization', async ({ page }) => {
   await page.goto('/mascot');
   await page.getByRole('button', { name: 'Tự lập', exact: true }).click();
-  await page.getByRole('button', { name: 'Tùy chỉnh mascot', exact: true }).click();
+  await page.getByRole('button', { name: 'Chi tiết mascot', exact: true }).click();
   await expect(page.getByText('Tự lập', { exact: true }).filter({ visible: true })).toBeVisible();
   await expect(page.getByText('An toàn', { exact: true }).filter({ visible: true })).toHaveCount(0);
 });
