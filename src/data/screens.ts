@@ -31,6 +31,7 @@ export const screenMeta = {
   'lesson-1': { title: 'bài 1', node: '315:1250', group: 'skills' },
   'lesson-2': { title: 'bài 2', node: '315:1312', group: 'skills' },
   'lesson-3': { title: 'bài 3', node: '315:1374', group: 'skills' },
+  game: { title: 'Chơi game — Căn phòng an toàn', node: '', group: 'skills' },
   'lesson-4': { title: 'bài 4', node: '315:1446', group: 'skills' },
   result: { title: 'Kết quả', node: '317:1988', group: 'skills' },
   classes: { title: 'Chưa có lớp', node: '287:7204', group: 'classes' },

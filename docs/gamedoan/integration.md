@@ -7,6 +7,7 @@ Nguồn: `C:\Users\Hu\Desktop\Doan\GameDoAn`, chuyển ngày 01/11/2026.
 - **Thư viện → Nhà an toàn · GameDoAn**, hoặc **Danh mục màn hình → Bộ màn GameDoAn**.
 - `/gamedoan`: danh mục chia thành Khám phá, Học và chơi, Cá nhân.
 - `/gamedoan/play`: mở nguyên bộ màn gốc; tham số `view` chọn màn đầu tiên.
+- `/game`: vào thẳng màn chơi **Bài 1 · Nhận biết nguy cơ cháy nổ**, từ Thư viện hoặc nút **Bắt đầu chơi** ở Bài 1.
 - `/games/gamedoan/index.html`: bản HTML độc lập nguyên gốc để đối chiếu.
 
 | Nhóm          | Màn                                                                                |
@@ -18,8 +19,11 @@ Nguồn: `C:\Users\Hu\Desktop\Doan\GameDoAn`, chuyển ngày 01/11/2026.
 | Cá nhân       | Đã lưu, Hành trình của em                                                          |
 
 Điều kiện mở khóa và thưởng giữ nguyên: bài 2/3/4 cần hoàn thành bài trước.
-Mở trực tiếp một bài đang khóa sẽ về chi tiết kỹ năng. Mục Game mở hướng dẫn
-trước khi bắt đầu để người chơi chủ động phát nhạc và khởi chạy đồng hồ.
+Mở trực tiếp một bài học đang khóa sẽ về chi tiết kỹ năng. Riêng `/game` và
+`/gamedoan/play?view=play` mở lượt chơi ngay, kể cả khi chưa học bài 1/2.
+Vào game không tự đánh dấu hoàn thành bài học và không tự cộng thưởng.
+Trong luồng LifeLab, kết quả ghi Bài 1, chơi lại mở lại game và thắng rồi tiếp tục sẽ mở Bài 2.
+Bài 3 LifeLab giữ nội dung lựa chọn xử lý tình huống. Luồng GameDoAn độc lập vẫn giữ thứ tự gốc.
 Kết quả/xem lại cần dữ liệu lượt chơi trong phiên, giống bản gốc.
 
 ## Mã nguồn
@@ -27,10 +31,11 @@ Kết quả/xem lại cần dữ liệu lượt chơi trong phiên, giống bả
 - `public/games/gamedoan/`: toàn bộ HTML, CSS, JS, assets và bộ kiểm tra gốc.
 - `src/features/gamedoan/`: danh mục và lớp Expo DOM để hiển thị tài liệu gốc
   trong iframe riêng, tránh CSS, audio, biến toàn cục tác động các màn LifeLab.
-- `src/app/gamedoan/`: route danh mục và route học/chơi bằng Expo Router.
+- `src/app/gamedoan/`, `src/app/game.tsx`: route danh mục, học và chơi bằng Expo Router.
 - `lifelab-bridge.js`: chọn màn đầu, báo màn đang mở cho Expo Router qua tham số `view`.
 - `lifelab.html`: tạo từ `index.html` bằng `node scripts/prepare-gamedoan.mjs`,
-  chỉ thêm script cầu nối; các tệp gốc giữ nguyên nội dung.
+  chỉ thêm script cầu nối. `screens.js` cho phép truyền số bài khi nhận kết quả game,
+  mặc định vẫn là Bài 3 của bản gốc; adapter LifeLab truyền Bài 1 cho `/game`.
 - `README-source.md`: hướng dẫn và nguồn tài nguyên từ project gốc.
 
 Khi sửa `index.html`, chạy lại `node scripts/prepare-gamedoan.mjs`.
@@ -52,8 +57,14 @@ trên thiết bị Android/iOS thật.
 
 Đã kiểm tra khi tích hợp:
 
-- 116 tệp mã nguồn/tài nguyên trùng nội dung với GameDoAn; bộ test gốc cũng được giữ lại.
+- Khi nhập ban đầu, 116 tệp mã nguồn/tài nguyên trùng nội dung với GameDoAn. Sau tích hợp Bài 1,
+  chỉ thêm tham số số bài vào hàm nhận kết quả trong `screens.js`; bộ test gốc cũng được giữ lại.
 - ESLint và TypeScript đều qua.
 - 21 bài kiểm thử Playwright qua bằng Chrome, gồm toàn bộ route LifeLab và ba bài kiểm thử GameDoAn.
 - Xuất bundle web, Android và iOS thành công, gồm bundle Expo DOM.
 - Kiểm tra bố cục 320 × 568, 390 × 844 và 844 × 390; ảnh chụp tại `docs/preview/gamedoan-*.png`.
+
+Sau khi gắn game vào Bài 1: 15 kiểm thử game/điều hướng đạt, gồm mở game với
+người dùng mới, thắng/thua, chơi lại, không nhận trùng EXP, kết quả Bài 1 và
+chuyển sang Bài 2; đã xuất lại bundle web/Android/iOS. Ảnh màn chơi trực tiếp:
+`docs/preview/game.png`.

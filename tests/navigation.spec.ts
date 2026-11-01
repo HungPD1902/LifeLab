@@ -50,7 +50,7 @@ test('onboarding, registration and four main tabs navigate', async ({ page }) =>
   await expect(page.getByText('Xin chào Đức Hưng').filter({ visible: true })).toBeVisible();
 });
 
-test('task filter and all four lessons lead to results', async ({ page }) => {
+test('task filter and lessons open the game before the assessment preview', async ({ page }) => {
   await page.goto('/tasks');
   await page.getByRole('button', { name: 'Chưa làm', exact: true }).click();
   await expect(
@@ -67,7 +67,14 @@ test('task filter and all four lessons lead to results', async ({ page }) => {
     .filter({ visible: true })
     .click();
   await page.getByRole('button', { name: 'Bắt đầu học', exact: true }).click();
-  for (const step of [1, 2, 3]) {
+  await expect(page).toHaveURL(/lesson-1/);
+  await page.getByRole('button', { name: 'Bắt đầu chơi', exact: true }).click();
+  await expect(page).toHaveURL(/\/game(?:\?|$)/);
+  await expect(page.frameLocator('iframe').locator('#game-screen')).toBeVisible();
+  await page.getByRole('button', { name: 'Về bài 1', exact: true }).click();
+  await expect(page).toHaveURL(/lesson-1/);
+  await page.goto('/lesson-2');
+  for (const step of [2, 3]) {
     await expect(page).toHaveURL(new RegExp(`lesson-${step}`));
     await expect(
       page.getByText(`Bài ${step}`, { exact: true }).filter({ visible: true }),
@@ -173,7 +180,11 @@ test('every route renders without runtime errors or horizontal overflow', async 
   page.on('pageerror', (error) => errors.push(error.message));
   for (const id of Object.keys(screenMeta)) {
     await page.goto(id === 'splash' ? '/' : '/' + id);
-    await expect(page.getByText('9:41', { exact: true }).filter({ visible: true })).toBeVisible();
+    if (id === 'game') {
+      await expect(page.frameLocator('iframe').locator('#pause')).toBeEnabled();
+    } else {
+      await expect(page.getByText('9:41', { exact: true }).filter({ visible: true })).toBeVisible();
+    }
     await expect(page.locator('body')).not.toBeEmpty();
     await expect(
       page.getByText('Không tìm thấy màn hình', { exact: true }).filter({ visible: true }),

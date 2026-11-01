@@ -46,7 +46,14 @@ export function LibraryScreen() {
     >
       <CategoryGrid />
       <Gap />
-      <Button label="Nhà an toàn · GameDoAn" icon="play" onPress={() => router.push('/gamedoan')} />
+      <Button label="Chơi game Nhà an toàn" icon="play" onPress={() => router.push('/game')} />
+      <Gap size={8} />
+      <Button
+        label="Nhà an toàn · GameDoAn"
+        variant="outline"
+        icon="book-open"
+        onPress={() => router.push('/gamedoan')}
+      />
       <Gap size={24} />
       <Section title="Gợi ý cho bạn" action="Xem tất cả" onPress={() => go('suggestions')} />
       <View style={{ gap: 8 }}>
@@ -308,14 +315,18 @@ export function SkillScreen({ id }: { id: ScreenId }) {
     );
   const step = Number(id.replace('lesson-', '')) || 1;
   const goals = [
-    'Nhận biết được những đồ vật và hành động có thể gây nguy cơ cháy nổ trong môi trường xung quanh.',
+    'Tìm 3 nguy cơ gây cháy trong căn phòng và quan sát cách người lớn xử lý an toàn.',
     'Phân biệt được những việc nên làm và không nên làm khi phát hiện đám cháy.',
     'Biết lựa chọn hành động phù hợp và an toàn khi gặp tình huống cháy.',
     'Kiểm tra và củng cố kiến thức về cách nhận biết nguy cơ và xử lý khi xảy ra cháy.',
   ];
   const instructions =
     step === 1
-      ? ['Quan sát môi trường', 'Tìm những yếu tố có nguy cơ gây cháy nổ.']
+      ? [
+          'Quan sát, kéo hoặc vuốt để khám phá căn phòng.',
+          'Chạm vào đồ vật có nguy cơ gây cháy.',
+          'Xem hoạt cảnh xử lý và tìm đủ 3 nguy cơ.',
+        ]
       : step === 2
         ? ['Đọc từng hành động.', 'Chọn “Nên làm” hoặc “Không nên làm”.']
         : [
@@ -331,12 +342,23 @@ export function SkillScreen({ id }: { id: ScreenId }) {
       onBack={() => back('skill-detail')}
       footer={
         <Button
-          label={step === 4 ? 'Kiểm tra' : 'Bắt đầu học'}
-          onPress={() => go(step >= 4 ? 'result' : (`lesson-${step + 1}` as ScreenId), { title })}
+          label={step === 4 ? 'Kiểm tra' : step === 1 ? 'Bắt đầu chơi' : 'Bắt đầu học'}
+          onPress={() =>
+            step === 1
+              ? router.push('/game')
+              : go(step >= 4 ? 'result' : (`lesson-${step + 1}` as ScreenId), { title })
+          }
         />
       }
     >
-      {step === 3 ? (
+      {step === 1 ? (
+        <Image
+          source={require('../../public/games/gamedoan/assets/visual/final.png')}
+          accessibilityLabel="Căn phòng trong game tìm nguy cơ gây cháy"
+          resizeMode="contain"
+          style={{ width: '100%', height: 230, borderRadius: 12, backgroundColor: '#eee4f4' }}
+        />
+      ) : step === 3 ? (
         <View style={{ gap: 14 }}>
           <ScenarioDialogueBox
             speaker="LifeLab Bạn đồng hành"
@@ -348,14 +370,8 @@ export function SkillScreen({ id }: { id: ScreenId }) {
                 text: 'Dùng khăn ướt bịt mũi miệng, cúi thấp người men theo tường thoát ra ngoài',
                 correct: true,
               },
-              {
-                text: 'Mở toang cửa sổ và nhảy xuống đất ngay lập tức',
-                correct: false,
-              },
-              {
-                text: 'Trốn vào gầm giường hoặc tủ quần áo đóng kín',
-                correct: false,
-              },
+              { text: 'Mở toang cửa sổ và nhảy xuống đất ngay lập tức', correct: false },
+              { text: 'Trốn vào gầm giường hoặc tủ quần áo đóng kín', correct: false },
             ]}
             explanation="Khói và khí độc bốc lên cao rất nguy hiểm. Dùng khăn ướt giúp lọc bớt khói và làm mát không khí, cúi thấp người sát sàn giúp hít thở không khí sạch hơn để thoát ra ngoài an toàn!"
           />
@@ -434,13 +450,17 @@ export function SkillScreen({ id }: { id: ScreenId }) {
       <Card style={{ padding: 12 }}>
         <Row between>
           {[
-            ['clock', step === 2 ? '1 phút' : '5 phút', 'Thời gian'],
+            ['clock', step === 2 ? '1 phút' : step === 1 ? '2 phút' : '5 phút', 'Thời gian'],
             [
               'bar-chart-2',
               step === 4 ? '5–10 câu' : '●●○',
               step === 4 ? 'Số lượng' : 'Độ khó: Vừa',
             ],
-            ['star', `${[12, 12, 20, 15][step - 1]} mảnh`, 'Phần thưởng'],
+            [
+              'star',
+              step === 1 ? 'Tối đa 20 EXP' : `${[12, 12, 20, 15][step - 1]} mảnh`,
+              'Phần thưởng',
+            ],
           ].map(([icon, value, label]) => (
             <View key={label} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
               <Icon name={icon} size={14} color={palette.strong} />

@@ -1,5 +1,84 @@
 import { test, expect } from '@playwright/test';
 
+test('fresh users can open the real game from direct links without completing lessons', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  for (const path of ['/game', '/gamedoan/play?view=play']) {
+    await page.goto(path);
+    const game = page.frameLocator('iframe[title="GameDoAn · Nhà an toàn"]');
+    await expect(game.locator('#game-screen')).toBeVisible();
+    await expect(game.locator('#pause')).toBeEnabled();
+    await expect(game.locator('#kitchen')).toBeVisible();
+    await expect
+      .poll(() =>
+        game.locator('#kitchen').evaluate((image) => (image as HTMLImageElement).naturalWidth),
+      )
+      .toBe(3089);
+    expect(
+      await game
+        .locator('body')
+        .evaluate(
+          () => JSON.parse(localStorage.getItem('safe-kitchen-course-v1') || '{}').completed ?? [],
+        ),
+    ).toEqual([]);
+    await game.getByRole('button', { name: 'Tạm dừng', exact: true }).click();
+    await expect(game.getByRole('dialog', { name: 'Nghỉ một chút nhé!' })).toBeVisible();
+    await game.getByRole('button', { name: 'Tiếp tục chơi', exact: true }).click();
+    await expect(game.locator('#pause')).toBeEnabled();
+    await page.reload();
+    await expect(game.locator('#game-screen')).toBeVisible();
+    await expect(game.locator('#pause')).toBeEnabled();
+  }
+  expect(errors).toEqual([]);
+});
+
+test('library and gallery game buttons open gameplay for a new player', async ({ page }) => {
+  await page.goto('/skills');
+  await page.getByRole('button', { name: 'Chơi game Nhà an toàn', exact: true }).click();
+  const game = page.frameLocator('iframe[title="GameDoAn · Nhà an toàn"]');
+  await expect(game.locator('#pause')).toBeEnabled();
+  await page.screenshot({ path: 'docs/preview/game.png' });
+  await page.getByRole('button', { name: 'Về bài 1', exact: true }).click();
+  await expect(page.locator('iframe')).toHaveCount(0);
+  await page.goto('/gamedoan');
+  await page.getByRole('button', { name: 'Game · Căn phòng an toàn', exact: true }).click();
+  await expect(game.locator('#game-screen')).toBeVisible();
+  await expect(game.locator('#pause')).toBeEnabled();
+});
+
+test('lesson 1 game results retry gameplay and continue to lesson 2', async ({ page }) => {
+  await page.goto('/lesson-1');
+  await expect(page.getByText('Bài 1', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Bắt đầu chơi', exact: true }).click();
+  const game = page.frameLocator('iframe[title="GameDoAn · Nhà an toàn"]');
+  await expect(game.locator('#pause')).toBeEnabled();
+  // Exercise real result/reward code at both terminal game states without waiting 120 seconds.
+  await game.locator('body').evaluate(() => window.eval('finish(false)'));
+  await expect(game.locator('.learn-score')).toHaveText('0');
+  await game.locator('[data-action="result-next"]').click();
+  await expect(game.locator('#pause')).toBeEnabled();
+  await game
+    .locator('body')
+    .evaluate(() => window.eval('found = new Set(CONFIG.hazards.map(h => h.id)); finish(true)'));
+  await expect(game.locator('.learn-result')).toContainText('Bạn đã hoàn thành Bài 1: Nhận biết');
+  expect(
+    await game
+      .locator('body')
+      .evaluate(() => JSON.parse(localStorage.getItem('safe-kitchen-course-v1') || '{}').completed),
+  ).toEqual([1]);
+  await game.locator('[data-action="result-replay"]').click();
+  await expect(game.locator('#pause')).toBeEnabled();
+  await game
+    .locator('body')
+    .evaluate(() => window.eval('found = new Set(CONFIG.hazards.map(h => h.id)); finish(true)'));
+  await expect(game.locator('.learn-reward').first()).toContainText('+0 EXP');
+  await game.locator('[data-action="result-next"]').click();
+  await expect(page).toHaveURL(/lesson-2/);
+  await expect(page.getByText('Kỹ năng thoát hiểm cơ bản', { exact: true })).toBeVisible();
+});
+
 test('GameDoAn is reachable from LifeLab and preserves lessons, bookmarks and the game', async ({
   page,
 }) => {

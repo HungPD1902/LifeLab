@@ -54,6 +54,9 @@ HTML/CSS/JS, ảnh, âm thanh, bài học, game và kiểm tra. Mở tại **Th�
 Nhà an toàn · GameDoAn** hoặc `/gamedoan`. Danh mục chia thành Khám phá,
 Học và chơi, Cá nhân; kết quả và xem lại xuất hiện sau lượt chơi.
 
+Chơi ngay tại `/game`, **Thư viện → Chơi game Nhà an toàn** hoặc
+**Bài 1 → Bắt đầu chơi**. Bài 3 giữ phần xử lý tình huống.
+
 Mã gốc nằm tại `public/games/gamedoan/`, hiển thị bằng Expo DOM trên web,
 Android và iOS. Route nằm tại `src/app/gamedoan/`, code tích hợp tại
 `src/features/gamedoan/`. Chi tiết: [docs/gamedoan/integration.md](docs/gamedoan/integration.md).

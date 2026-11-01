@@ -148,11 +148,11 @@ window.LearningApp = (() => {
     route = 'play';
     if (updateHistory && location.hash !== '#play') history.pushState(null,'','#play');
   }
-  function showGameResult(r) {
+  function showGameResult(r, lesson = 3) {
     const score = Math.max(0, Math.round(found.size / CONFIG.hazards.length * 100) - r.mistakes * 10);
     course.gameBestScore = Math.max(course.gameBestScore,score);
-    if (r.won) completeLesson(3);
-    currentResult = {kind:'game',lesson:3,score,best:course.gameBestScore,correct:found.size,total:CONFIG.hazards.length,mistakes:r.mistakes,elapsed:Math.round(r.elapsed),xp:r.added,coin:r.coin,stars:r.stars,completed:r.won,foundIDs:[...found],wrongIDs:[...wrong]};
+    if (r.won) completeLesson(lesson);
+    currentResult = {kind:'game',lesson,score,best:course.gameBestScore,correct:found.size,total:CONFIG.hazards.length,mistakes:r.mistakes,elapsed:Math.round(r.elapsed),xp:r.added,coin:r.coin,stars:r.stars,completed:r.won,foundIDs:[...found],wrongIDs:[...wrong]};
     // Snapshot the values, so revisiting results never grants rewards again.
     navigate('results'); persist();
   }
