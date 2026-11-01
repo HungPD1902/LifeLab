@@ -1,0 +1,7 @@
+# Generated kitchen background
+
+`kitchen-safe.png` was edited with the built-in imagegen tool from `kitchen.png`. It supplies local background patches after each animation; the original scene stays intact elsewhere.
+
+Prompt used:
+
+Use case: precise-object-edit. Asset type: clean background plate for a children's fire-safety game animation. Edit target: attached kitchen image. Preserve EXACT framing, camera, 4:3 aspect ratio, positions, lighting, colors, sizes and ALL other objects. Make only these local changes: (1) completely remove the red-and-white checkered towel hanging off the counter immediately left of the stove, revealing the uninterrupted wooden counter edge and green cabinet/oven behind it; (2) remove only the red aerosol can with flame symbol to the right of the frying pan, revealing tiled wall and wooden countertop behind it, keep both oil bottles; (3) make the white power strip near the rice cooker safe: only ONE plug connected, no lightning-bolt warning symbols on the wall, keep wall outlets and all appliances; (4) replace the visibly broken black electrical cable at the right counter edge with one smooth intact black cable with no red sparks; (5) remove the red matchbox AND both loose matches from the small wooden counter at lower right. NO other changes. Do not add people, hands, text, signs, checkmarks, icons, or replacement props. Keep all spatial details precisely registered to original for a seamless overlay; this is the SAME image after safe resolution, not a new composition. Output full image, opaque.

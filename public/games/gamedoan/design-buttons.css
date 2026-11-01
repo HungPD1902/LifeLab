@@ -1,0 +1,29 @@
+/* Figma Design System 8:2, Button component set 131:7079. */
+@font-face{font-family:Capriola;src:url('assets/design-system/capriola.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+:root{--ds-primary-100:#f8fcff;--ds-primary-500:#70baf0;--ds-primary-800:#0f63a9;--ds-primary-edge:#03355f;--ds-text-secondary:#1989e2;--ds-disabled:#e2e2e2;--ds-text-disabled:#82878c}
+.app .ds-button:is(.ds-primary,.ds-secondary,.ds-text){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;height:auto;padding:11px 24px;border:0;border-radius:10px;font-family:Capriola,Arial,sans-serif;font-size:18px!important;font-weight:650;line-height:26px;letter-spacing:0;text-decoration:none;text-align:center;touch-action:manipulation;transform:none;transition:background-color .15s,box-shadow .15s}
+.app .ds-button.ds-primary{background:var(--ds-primary-500);color:#fff!important;box-shadow:inset 0 -3px 0 var(--ds-primary-800)}
+.app .ds-button.ds-secondary{background:var(--ds-primary-100);color:var(--ds-primary-800)!important;box-shadow:inset 0 0 0 1px var(--ds-primary-800),inset 0 -2px 0 1px var(--ds-primary-800)}
+.app .ds-button.ds-text{background:transparent;color:var(--ds-text-secondary)!important;box-shadow:none}
+.app .ds-button.ds-40{min-height:40px;padding:8px 20px;border-radius:8px;font-size:16px!important;font-weight:600;line-height:24px;gap:4px}
+.app .ds-button.ds-32{min-height:32px;padding:7px 20px;border-radius:8px;font-size:12px!important;font-weight:500;line-height:18px;gap:4px}
+.app .ds-button.ds-icon{width:48px;height:48px;min-width:48px;padding:12px;border-radius:10px}
+.app .ds-button.ds-primary:not(:disabled):active{background:var(--ds-primary-800);box-shadow:inset 0 -3px 0 var(--ds-primary-edge);transform:none}
+.app .ds-button.ds-secondary:not(:disabled):active{background:#e8f5ff;transform:none}
+.app .ds-button.ds-text:not(:disabled):active{background:var(--ds-primary-100);transform:none}
+.app .ds-button:disabled{background:var(--ds-disabled);color:var(--ds-text-disabled)!important;box-shadow:inset 0 -3px 0 var(--ds-text-disabled);opacity:1;cursor:default}
+.app .ds-button:focus-visible{outline:3px solid var(--ds-primary-800);outline-offset:3px}
+.ds-icon-image{display:block;flex:none;width:24px;height:24px}
+.app .ds-button .ds-icon-image{width:24px;height:24px}
+.app .ds-button.ds-32 .ds-icon-image{margin:0 -4px}
+.app .scene #hint small{background:var(--ds-primary-100);color:var(--ds-primary-800);border-color:var(--ds-primary-500)}
+.app .scene #sound[aria-pressed=true]{background:#e8f5ff}
+.app .overlay .animation-lesson .lesson-skip{width:100%;margin:12px 0 0;flex-direction:row}
+.app .ds-button .lesson-skip-label{font:inherit;color:inherit}
+.app .ds-button .lesson-continue-icon{display:none}
+.app .learn-actions .ds-button{width:100%}
+.app .learn-continue .ds-button{flex-shrink:0}
+.app .lesson-player-controls .ds-button{padding:4px 12px}
+.app .lesson-player-controls{flex-wrap:wrap}
+.app .ds-button.ds-game-exit{font-size:12px!important;padding:4px 12px}
+@media(max-width:360px){.app .ds-button:is(.ds-primary,.ds-secondary){padding-left:16px;padding-right:16px}.app .ds-button.ds-icon{padding:12px}}

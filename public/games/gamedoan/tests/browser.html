@@ -1,0 +1,69 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>Room browser checks</title><style>body{margin:0}iframe{width:100vw;height:100vh;border:0}pre{position:fixed;bottom:0;background:white;max-height:160px;overflow:auto}</style><iframe src="../index.html"></iframe><pre id="checks">Running…</pre><script>
+const frame=document.querySelector('iframe'),params=new URLSearchParams(location.search);
+if(params.has('mobile'))frame.style.width='390px';
+if(params.has('landscape')){frame.style.width='844px';frame.style.height='390px';}
+frame.onload=async()=>{
+ const results=[],w=frame.contentWindow,ev=code=>w.eval(code),wait=ms=>new Promise(r=>setTimeout(r,ms));
+ const check=(name,code)=>{if(!ev(code))throw Error(name);results.push('PASS '+name)};
+ try{
+ ev('soundEnabled=false;LearningApp.startGame()');
+ check('three hazards match supplied art','CONFIG.hazards.length===3&&CONFIG.hazards.every(h=>h.sprite)');
+ check('seventeen separated normal objects','CONFIG.normal.length===17');
+ check('Final loaded at original ratio','$("kitchen").complete&&$("kitchen").naturalWidth===3089&&$("kitchen").naturalHeight===2441');
+ check('overview fits viewport','document.documentElement.scrollWidth<=innerWidth');
+ check('buttons remain in the gameplay scene','$("scene").contains($("pause"))&&$("scene").contains($("hint"))');
+ check('camera toolbar removed','!document.querySelector(".camera-controls")');
+ ev('$("camera").dispatchEvent(new WheelEvent("wheel",{deltaY:-100,clientX:195,clientY:300,cancelable:true}))');
+ check('wheel zooms in','roomZoom>1');
+ ev('setRoomZoom(9)');
+ check('zoom is clamped','roomZoom===3');
+ ev('zoomRoom(false)');
+ check('overview still available by gesture','roomZoom===1&&!$("scene").classList.contains("zoomed")');
+ ev('zoomRoom(true)');
+ check('zoom allows two-axis panning','$("camera").scrollWidth>$("camera").clientWidth&&$("camera").scrollHeight>$("camera").clientHeight');
+ check('hit regions align with artwork','Math.abs($("objects").getBoundingClientRect().width-$("kitchen").getBoundingClientRect().width)<1');
+ ev('$("objects").querySelector("[data-id=obj-2404]").click()');
+ check('normal object penalty','wrongClicks===1&&remaining<=115&&remaining>114');
+ check('normal tap lifts the selected sprite and names it','document.querySelector(".normal-object-lift").getAttribute("src").includes("2404.png")&&document.querySelector(".normal-object-label").textContent.includes("Chậu cây")');
+ ev('discover(CONFIG.hazards[0])');
+ check('discovery pauses time and shows new sprite lesson','state==="lesson"&&found.size===1&&!!$("overlay").querySelector(".room-lesson")');
+ check('book badge counts the first found danger','!$("notebook-badge").hidden&&$("notebook-badge").textContent==="1"');
+ check('correct hazard immediately changes to its safe state without an outline','resolved.has("wire")&&!!document.querySelector("[data-repair=wire]")&&!document.querySelector(".hazard-outline")');
+ check('starting demo clears temporary normal feedback','!document.querySelector(".normal-object-lift")&&!activeObjectFeedback');
+ check('wire replacement is shown without tape or a hand','!document.querySelector(".demo-adult-hand,.demo-tape-roll,.demo-tape-bands")&&!!document.querySelector(".demo-wire .demo-clean")');
+ ev('window.zoomBeforeDemo=roomZoom;$("camera").dispatchEvent(new WheelEvent("wheel",{deltaY:-100,cancelable:true}))');
+ check('zoom ignored during demo','roomZoom===window.zoomBeforeDemo');
+ ev('lastTick=performance.now()-10000;tick()');
+ check('lesson clock is paused','remaining>114');
+ ev('$("lesson-toggle").click();window.playhead=$("lesson-fill").style.width');await wait(80);
+ check('animation pauses','$("lesson-fill").style.width===window.playhead');
+ ev('$("skip-lesson").click()');
+ check('resolution patches new room','resolved.has("wire")&&$("repairs").querySelector("[data-repair=wire]")');
+ ev('discover(CONFIG.hazards[0]);$("skip-lesson").click()');
+ check('replay does not duplicate progress or patches','found.size===1&&$("repairs").children.length===1');
+ ev('window.beforeHint=remaining;hint()');check('every hint costs twenty seconds and pauses the clock','state==="hint"&&beforeHint-remaining>=20&&beforeHint-remaining<20.2&&$("hint-cost").textContent==="−20s"');
+ await wait(30);check('hint opens close-up','$("scene").classList.contains("zoomed")');
+ ev('clearLessonTimers();$("hint-region").hidden=true;setState("search");CONFIG.lessonDuration=60;discover(CONFIG.hazards[1])');await wait(150);
+ check('watched animation marks lesson learned','profile.learned.includes("socket")&&resolved.has("socket")');
+ check('book badge counts the second danger','$("notebook-badge").textContent==="2"');
+ ev('discover(CONFIG.hazards[2])');
+ check('cigarette disappears immediately and no longer has an invisible tap target','resolved.has("cigarette")&&!!document.querySelector("[data-repair=cigarette]")&&document.querySelector("[data-id=cigarette]").disabled');
+ ev('$("skip-lesson").click()');
+ check('last hazard opens result screen','state==="result"&&resultData.won&&!!document.querySelector(".learn-score")');
+ check('three repaired hazards and bin placed under the table','resolved.size===3&&$("repairs").querySelectorAll("[data-repair]").length===3&&!!$("repairs").querySelector(".room-bin")');
+ check('book badge counts all three dangers','$("notebook-badge").textContent==="3"');
+ check('actual mistake count is recorded','resultData.mistakes===1');
+ ev('reset();clearLessonTimers();$("overlay").replaceChildren();setState("search");remaining=1;$("objects").querySelector("[data-id=obj-2404]").click()');
+ check('timeout opens failed result','state==="result"&&!resultData.won');
+ ev('reset();clearLessonTimers()');
+ check('reset clears repairs and zoom','resolved.size===0&&!$("repairs").children.length&&!$("scene").classList.contains("zoomed")');
+ check('new game hides the empty book badge','$("notebook-badge").hidden');
+ check('reset clears outlines and zoom','!document.querySelector(".hazard-outline")&&roomZoom===1');
+ ev('LearningApp.startGame();$("objects").querySelector("[data-id=obj-2404]").click();$("objects").querySelector("[data-id=obj-2405]").click()');
+ check('rapid normal taps replace the previous feedback','document.querySelectorAll(".normal-object-lift").length===1&&document.querySelectorAll(".normal-object-underlay").length===1&&document.querySelector(".normal-object-lift").getAttribute("src").includes("2405.png")');
+ await wait(1100);
+ check('normal object returns to its original appearance','!activeObjectFeedback&&!document.querySelector(".normal-object-lift")&&!document.querySelector(".normal-object-underlay")&&!document.querySelector(".normal-object-label")');
+ document.getElementById('checks').textContent=results.join('\n')+'\nALL CHECKS PASSED';
+ }catch(error){document.getElementById('checks').textContent=results.join('\n')+'\nFAIL '+error.stack}
+};
+</script></html>

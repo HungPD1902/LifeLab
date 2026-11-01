@@ -1,0 +1,44 @@
+'use dom';
+
+import { useEffect, useRef } from 'react';
+
+type Props = {
+  initialView: string;
+  onNavigate: (view: string) => Promise<void>;
+  dom?: import('expo/dom').DOMProps;
+};
+
+// Keep the original document isolated: its global CSS, timers and audio own this frame.
+export default function GameDoanEmbed({ initialView, onNavigate }: Props) {
+  const frame = useRef<HTMLIFrameElement>(null);
+  const base = `${process.env.EXPO_BASE_URL ?? '/'}`.replace(/\/?$/, '/');
+
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (event.source !== frame.current?.contentWindow) return;
+      if (event.data?.type === 'lifelab:gamedoan:screen' && typeof event.data.view === 'string') {
+        void onNavigate(event.data.view);
+      }
+    };
+    window.addEventListener('message', receive);
+    return () => window.removeEventListener('message', receive);
+  }, [onNavigate]);
+
+  return (
+    <iframe
+      ref={frame}
+      title="GameDoAn · Nhà an toàn"
+      src={`${base}games/gamedoan/lifelab.html?screen=${encodeURIComponent(initialView)}`}
+      allow="autoplay"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        border: 0,
+        background: '#fff',
+      }}
+    />
+  );
+}

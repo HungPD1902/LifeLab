@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Image, View } from 'react-native';
 import {
@@ -45,6 +45,8 @@ export function LibraryScreen() {
       }
     >
       <CategoryGrid />
+      <Gap />
+      <Button label="Nhà an toàn · GameDoAn" icon="play" onPress={() => router.push('/gamedoan')} />
       <Gap size={24} />
       <Section title="Gợi ý cho bạn" action="Xem tất cả" onPress={() => go('suggestions')} />
       <View style={{ gap: 8 }}>

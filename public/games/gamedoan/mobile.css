@@ -1,0 +1,75 @@
+/* The game fills the phone; the artwork keeps its original hit-test ratio. */
+/* Desktop opens in a portrait phone frame without browser device emulation. */
+html,body{width:100%;height:100%;overflow:hidden;background:#183b31}
+.app{width:100%;max-width:520px;height:100vh;height:100dvh;padding:0;margin:auto;container-type:size}
+.topbar,.heading,.sidebar,.page-footer{display:none}
+main,.game-layout,.play-panel{height:100%;width:100%;display:block;margin:0;padding:0}
+.play-panel{border:0;border-radius:0;background:#183b31;box-shadow:0 0 80px #0005}
+.scene{width:100%;height:100%;aspect-ratio:auto;background:#244d3b;position:relative;overflow:hidden}
+.scene-camera{position:absolute;inset:0;overflow:auto;scrollbar-width:none;overscroll-behavior:contain;touch-action:pan-x pan-y}
+.scene-camera::-webkit-scrollbar{display:none}
+.scene-camera,.scene-camera .object{cursor:grab}
+.scene-camera.dragging,.scene-camera.dragging .object{cursor:grabbing}
+.scene-camera,.scene-art,.objects,.object{user-select:none;-webkit-user-select:none}
+.scene-camera .object:active{transform:none}
+.scene-camera .object{touch-action:pan-x pan-y}
+.scene::after{content:'';position:absolute;inset:0;background:linear-gradient(#122e2920,transparent 35%,transparent 65%,#142f2933);pointer-events:none;z-index:1}
+.scene-art{position:relative;width:max(120%,160vh);width:max(120cqw,160cqh);height:auto;aspect-ratio:1448/1086;isolation:isolate}
+.scene-art>img{width:100%;height:100%;display:block;object-fit:contain;user-select:none}
+.hud{position:absolute;z-index:3;top:max(18px,env(safe-area-inset-top));left:18px;right:18px;height:auto;padding:0;display:flex;align-items:center;justify-content:flex-start;gap:10px;pointer-events:none}
+.timer-block,.progress-block{min-width:0;display:flex;align-items:center;gap:8px;height:48px;padding:0 13px;border:1px solid #fffae275;border-radius:18px;background:#fffbedf2;box-shadow:0 4px 0 #143f3625,0 8px 24px #173d3025;backdrop-filter:blur(10px)}
+.hud strong{font-size:20px;font-weight:800;letter-spacing:-.7px;white-space:nowrap}
+.progress-block strong span{font-size:12px;color:#819078}
+.hud-icon{display:flex;align-items:center;color:#397959;font-size:24px}
+.hud-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hud #pause{margin-left:auto;pointer-events:auto}
+.scene .icon-button{width:48px;height:48px;min-width:48px;border-radius:17px;background:#fffbedf2;border:1px solid #fffae275;box-shadow:0 4px 0 #143f3625,0 8px 24px #173d3025;color:#32644d;display:grid;place-items:center;font-size:27px;touch-action:manipulation}
+.scene .icon-button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.game-tools{position:absolute;left:20px;bottom:max(24px,env(safe-area-inset-bottom));display:flex;gap:10px;z-index:3}
+.sound-off{right:9px;top:6px;font-size:14px}
+.scene .hint-button{position:absolute;right:20px;bottom:max(24px,env(safe-area-inset-bottom));z-index:3;width:62px;height:62px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(#ffdc7c,#f6bd53);border:2px solid #ffeeb2;box-shadow:0 5px 0 #a26830,0 10px 25px #143e3240;padding:0;color:#745527;touch-action:manipulation}
+.hint-button svg{width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.scene .hint-button small{display:grid;place-items:center;position:absolute;right:-7px;top:-8px;min-width:25px;height:25px;padding:0 5px;margin:0;background:#fffbed;color:#5c7650;border:2px solid #ebc371;border-radius:20px;font-size:9px;letter-spacing:0;font-weight:800;box-shadow:0 2px 3px #173b2b20}
+.scene-footer{position:absolute;left:20px;right:20px;bottom:max(112px,calc(env(safe-area-inset-bottom) + 90px));z-index:2;border:1px solid #e2e9c647;border-radius:20px;padding:12px;background:#163d32c4;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:flex-start;gap:10px;color:#fff7db;pointer-events:none}
+.scene-footer .mascot{width:48px;height:48px;flex-shrink:0;margin-top:-12px;filter:drop-shadow(0 2px 2px #12362740)}
+.scene-footer>div{min-width:0;display:flex;flex-direction:column;gap:6px}
+.scene-footer strong{font-size:13px;letter-spacing:0}
+.scene-footer .camera-tip{display:block;font-size:9px;color:#c0d6b8;line-height:1.5}
+.scene-footer .mission-target{font-size:9px;letter-spacing:0;margin-left:auto;border:1px solid #acc6993b;border-radius:20px;padding:7px 8px;white-space:nowrap;color:#fce9a7}
+/* Avoid recomputing background blur over the moving illustration on phones. */
+@media(pointer:coarse){
+  .timer-block,.progress-block,.scene-footer{-webkit-backdrop-filter:none;backdrop-filter:none}
+  .scene-footer{background:#163d32f2}
+}
+.scene-toast{bottom:max(195px,calc(env(safe-area-inset-bottom) + 180px));width:max-content;max-width:90%;font-size:11px;line-height:1.7}
+.overlay{z-index:5;padding:20px;align-items:center;background:#14372990}
+.overlay .modal{padding:24px;border-radius:24px;max-height:calc(100% - 20px);width:min(440px,100%);overscroll-behavior:contain}
+.overlay .modal>.mascot{width:100px;height:100px}
+.overlay .modal h2{font-size:23px;line-height:1.4}
+.overlay .modal p{font-size:12px;line-height:1.85}
+.overlay .modal .primary,.overlay .modal .secondary{min-height:44px;font-size:11px;padding:12px}
+.overlay .lesson-head h2{font-size:18px}.overlay .lesson-head .mascot{width:58px;height:58px}
+.overlay .lesson-photo{height:125px;margin:14px 0}
+.overlay .solution-step{font-size:9px}.overlay .solution-step b{font-size:24px}
+.overlay .review-item p{font-size:11px}.overlay .review-item h3{font-size:12px}
+.overlay .intro-rules{font-size:9px;gap:18px;padding:16px 0}.overlay .intro-rules strong{font-size:16px}
+.overlay .stars{font-size:37px}.overlay .reward{font-size:12px;padding:12px}
+.notebook-entry{display:block;width:100%;margin:8px 0;border:1px solid #dce4d2;padding:14px;border-radius:12px;background:#edf2e4;text-align:left;color:#2d6953;font-size:12px}
+.overlay .lesson-skip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:112px;min-height:96px;margin:16px auto 0;padding:4px;background:transparent;border:0;border-radius:20px;text-decoration:none;touch-action:manipulation}
+.lesson-skip-art{position:relative;display:grid;place-items:center;width:66px;height:66px;border:3px solid #fffdf0;border-radius:23px;background:linear-gradient(145deg,#9ccb91,#68a977);box-shadow:0 5px 0 #487b55,0 8px 15px #436f4920;transform:rotate(-5deg);transition:transform .18s,box-shadow .18s}
+.lesson-skip-art>svg{width:57px;height:57px}
+.lesson-skip-arrow{position:absolute;right:-9px;bottom:-5px;display:grid;place-items:center;width:28px;height:28px;border:2px solid #fffdf0;border-radius:50%;background:#ffce70;color:#795b32;box-shadow:0 2px 0 #d6a14e}
+.lesson-skip-arrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lesson-skip-label{font-size:11px;font-weight:700;line-height:1.4;color:#4c8057}
+.overlay .lesson-skip:active{transform:none}.lesson-skip:active .lesson-skip-art{transform:rotate(0) translateY(3px);box-shadow:0 2px 0 #487b55}
+@media(hover:hover){.lesson-skip:hover .lesson-skip-art{transform:rotate(0) translateY(-2px)}}
+@media(min-width:700px){
+  body{display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#376553,#163b31 65%)}
+  .app{position:relative;width:min(390px,calc((100dvh - 64px) * .4620853));height:min(844px,calc(100dvh - 64px));margin:0;border:8px solid #102a23;border-radius:36px;box-sizing:content-box;overflow:hidden;box-shadow:0 0 0 1px #71967e66,0 28px 80px #061c1970}
+}
+@media(pointer:coarse) and (orientation:landscape){
+  body{display:block;background:#183b31}
+  .app{max-width:none;width:min(100vw,133.333dvh);height:100dvh;margin:auto;border:0;border-radius:0;box-shadow:none;box-sizing:border-box}
+}
+@media(max-width:360px){.hud{left:12px;right:12px;gap:7px}.timer-block,.progress-block{padding:0 10px;gap:6px}.hud strong{font-size:18px}.scene-footer{left:12px;right:12px}.scene-footer .mission-target{font-size:8px;padding:6px}.overlay{padding:12px}.overlay .modal{padding:18px}.overlay .modal h2{font-size:20px}}
+@container (aspect-ratio > 1){.scene-art{top:0}.hud{top:12px;left:12px;right:12px}.timer-block,.progress-block{height:42px}.scene .icon-button{width:44px;height:44px;min-width:44px;border-radius:15px}.game-tools{bottom:14px;left:14px}.scene .hint-button{bottom:14px;right:14px;width:50px;height:50px;border-radius:17px}.scene-footer{bottom:14px;left:130px;right:83px;padding:8px;gap:7px}.scene-footer .mascot{width:33px;height:33px;margin-top:-7px}.scene-footer strong{font-size:10px}.scene-footer #state-label{font-size:7px}.scene-footer .mission-target{display:none}.scene-toast{bottom:80px}.overlay{padding:12px}.overlay .modal{padding:16px}.overlay .modal>.mascot{width:58px;height:58px}.overlay .lesson-photo{height:75px}.overlay .modal h2{font-size:18px}.overlay .modal p{font-size:10px;margin:6px 0 12px}}

@@ -13,6 +13,8 @@ const mime = {
   '.ttf': 'font/ttf',
   '.woff2': 'font/woff2',
   '.ico': 'image/x-icon',
+  '.mp3': 'audio/mpeg',
+  '.webp': 'image/webp',
 };
 const server = createServer(async (req, res) => {
   try {

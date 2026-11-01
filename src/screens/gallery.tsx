@@ -1,4 +1,5 @@
 import { View } from 'react-native';
+import { router } from 'expo-router';
 import { Badge, Button, Card, Gap, Row, Screen, Section, T } from '../components/ui';
 import { screenMeta, ScreenId } from '../data/screens';
 import { go } from '../navigation';
@@ -22,6 +23,12 @@ export function ScreenGallery() {
         label="❖ Thư viện Components (Design System 8:2)"
         icon="box"
         onPress={() => go('components')}
+      />
+      <Gap size={20} />
+      <Button
+        label="Bộ màn GameDoAn · Nhà an toàn"
+        icon="play"
+        onPress={() => router.push('/gamedoan')}
       />
       <Gap size={20} />
       {groups.map(([group, title]) => (

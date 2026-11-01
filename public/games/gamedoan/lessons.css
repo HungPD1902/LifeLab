@@ -1,0 +1,6 @@
+/* The lesson scene uses deterministic SVG transforms driven by its playhead. */
+.scene-repairs{position:absolute;inset:0;pointer-events:none}
+.repair-patch{position:absolute;background-image:url('assets/visual/safe.png');background-repeat:no-repeat;animation:repairAppear .4s ease both}
+.object.resolved::before,.object.resolved::after{display:none}
+@keyframes repairAppear{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.repair-patch{animation:none}}

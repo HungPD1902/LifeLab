@@ -1,0 +1,25 @@
+/* Final.PNG and every supplied layer share a 3089 × 2441 artboard. */
+.scene{background:radial-gradient(ellipse at 26% 32%,#fff8e89c,transparent 58%),linear-gradient(165deg,#c9bbed 0%,#e6d3e4 52%,#f5dfcf 100%)}
+.scene::after{background:radial-gradient(circle at 15% 24%,#ffffff30 0 12px,transparent 13px),radial-gradient(circle at 86% 69%,#ffffff20 0 20px,transparent 21px);z-index:0}
+.scene-camera{z-index:1}
+.scene-art{width:100%;aspect-ratio:3089/2441;top:24%;isolation:isolate;filter:drop-shadow(0 14px 13px #745f7920)}
+.scene-art>img{height:auto;aspect-ratio:3089/2441}
+.scene.zoomed .scene-art{top:24%;margin:0}
+.scene-footer{z-index:2}
+.object.found{filter:none}
+.object.found::before{background-image:var(--object-sprite);background-size:100% 100%;background-position:center;clip-path:none;filter:brightness(1.18) saturate(1.15) drop-shadow(0 0 4px #c6ff82)}
+.object.found::after{display:none}
+.object.resolved::before{display:none}
+.object.found::before{display:none}
+.normal-object-underlay,.normal-object-lift{position:absolute;pointer-events:none;object-fit:fill}
+.normal-object-lift{z-index:4;transform-origin:center 80%;animation:objectLift .9s ease-in-out both;filter:brightness(1.1) drop-shadow(0 5px 4px #645b4d55)}
+.normal-object-label{position:absolute;z-index:4;pointer-events:none;max-width:calc(100% - 24px);padding:7px 11px;border:1px solid #fff9e5;border-radius:11px;background:#fffbedf5;color:#536247;box-shadow:0 3px 12px #4c43522a;font-size:10px;line-height:1.5;text-align:center;animation:objectLabel .95s ease both}
+@keyframes objectLift{0%,100%{transform:translateY(0) scale(1)}25%,65%{transform:translateY(-9px) scale(1.055)}}
+@keyframes objectLabel{0%{opacity:0;transform:translateY(4px)}15%,80%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.normal-object-lift{animation:none;filter:brightness(1.18)}.normal-object-label{animation:none}}
+.repair-patch{background-image:url('assets/visual/safe.png')}
+.learn-hero{background:linear-gradient(145deg,#e4d7ef,#f2e0ce)}
+.learn-hero img{object-fit:contain;opacity:.65}
+.learn-reading-photo,.review-photo{background-color:#ede4ed;background-size:contain}
+@container (aspect-ratio > 1){.scene-art{width:62%;top:12%;margin:0 auto}}
+@container (aspect-ratio > 1){.scene.zoomed .scene-art{top:12%}}

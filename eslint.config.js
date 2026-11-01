@@ -10,6 +10,7 @@ module.exports = defineConfig([
       'node_modules/**',
       'playwright-report/**',
       'test-results/**',
+      'public/games/gamedoan/**',
     ],
   },
 ]);

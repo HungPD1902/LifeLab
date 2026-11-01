@@ -1,0 +1,48 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>HUD and audio integration checks</title>
+<style>body{margin:0}iframe{width:390px;height:844px;border:0}pre{position:fixed;right:0;top:0;max-width:55vw;background:white;white-space:pre-wrap}</style>
+<iframe src="../index.html"></iframe><button onclick="runChecks()">Run audio checks</button><pre id="checks">Ready</pre><script>
+const frame=document.querySelector('iframe'),wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function runChecks(){
+ const w=frame.contentWindow,ev=code=>w.eval(code),results=[];
+ const check=(name,code)=>{if(!ev(code))throw Error(name);results.push('PASS '+name)};
+ try{
+  ev('soundEnabled=true;gameAudio.setMuted(false);LearningApp.startGame();gameAudio.unlock()');
+  check('pause button is circular','Math.abs($("pause").offsetWidth-$("pause").offsetHeight)<1');
+  check('HUD has flame; skill and sound controls are inside pause only','document.querySelector(".hazard-emblem").src.includes("flame.svg")&&!document.querySelector(".learn-game-exit")&&!$("sound")');
+  check('book is below hint; hint cost is a corner badge','$("notebook-button").getBoundingClientRect().top>$("hint").getBoundingClientRect().bottom&&$("hint-cost").getBoundingClientRect().top<$("hint").getBoundingClientRect().top&&document.querySelector(".notebook-art").src.includes("notebook-blue.webp")');
+  ev('pause()');
+  check('pause includes three volume sliders and skill navigation','$("sound")&&$("pause-skills")&&document.querySelectorAll("[data-volume]").length===3');
+  ev('$("volume-music").value="43";$("volume-music").dispatchEvent(new Event("input"))');
+  check('music volume changes immediately and is saved','gameAudio.music.volume===.43&&JSON.parse(localStorage.getItem("safe-room-audio-v1")).music===.43');
+  await wait(400);
+  check('selected background music actually plays','!gameAudio.music.paused&&gameAudio.music.currentTime>0&&gameAudio.music.src.includes("boba-date.mp3")');
+  ev('$("sound").click()');
+  check('master mute stops music','!soundEnabled&&gameAudio.music.paused');
+  ev('$("sound").click();$("resume").click();window.beforeHint=remaining;hint();hint()');
+  check('first hint deducts twenty seconds only once while active','hints===1&&beforeHint-remaining>=20&&beforeHint-remaining<20.2&&state==="hint"');
+  check('hint lights its region and dims surrounding scene','!$("hint-region").hidden&&getComputedStyle($("hint-region")).boxShadow.includes("rgba")');
+  ev('clearLessonTimers();setState("search");window.beforeSecondHint=remaining;hint()');
+  check('the next hint also deducts twenty seconds','hints===2&&beforeSecondHint-remaining>=20&&beforeSecondHint-remaining<20.2');
+  ev('clearLessonTimers();setState("search");window.played=[];window.originalPlay=gameAudio.play;gameAudio.play=name=>{played.push(name);originalPlay(name);};$("objects").querySelector("[data-id=obj-2404]").click();$("objects").querySelector("[data-id=obj-2416]").click()');
+  check('normal taps pop; cat adds its meow','played.filter(name=>name==="pop").length===2&&played.filter(name=>name==="meow").length===1');
+  ev('gameAudio.play=originalPlay;gameAudio.setState("lesson")');
+  check('background music ducks for narration and effects','gameAudio.music.volume<=.43*.22+.001');
+  ev('gameAudio.setHidden(true)');
+  check('hidden game stops its music','gameAudio.music.paused');
+  ev('gameAudio.setHidden(false);setState("search");pause();$("pause-skills").click()');
+  check('pause skill button exits cleanly and stops music','state==="hub"&&location.hash==="#fire"&&gameAudio.music.paused');
+  // Decode the delivered MP3s, rather than only checking their URLs exist.
+  const decoded=await ev(`(async()=>{const ctx=new AudioContext(),paths=['pop.mp3','meow.mp3','boba-date.mp3',...CONFIG.hazards.flatMap(h=>[0,1,2,3].map(i=>'voice/'+h.id+'-'+i+'.mp3'))];const result={};for(const path of paths){const response=await fetch('assets/audio/'+path);if(!response.ok)throw Error(path);const buffer=await ctx.decodeAudioData(await response.arrayBuffer());let peak=0;for(const sample of buffer.getChannelData(0))peak=Math.max(peak,Math.abs(sample));result[path]={duration:buffer.duration,peak};}await ctx.close();return result;})()`);
+  if(Object.keys(decoded).length!==15||Object.values(decoded).some(item=>item.peak<.01||item.duration<=.05))throw Error('Silent or invalid audio asset');
+  if(decoded['pop.mp3'].duration>.5||decoded['meow.mp3'].duration<.8||decoded['meow.mp3'].duration>1.4)throw Error('SFX not trimmed correctly');
+  results.push('PASS all 15 music/SFX/Google narration MP3s decode with audible samples');
+  ev('LearningApp.startGame();remaining=19;hint()');
+  check('a hint cannot make time negative or continue an expired game','state==="result"&&remaining===0&&!resultData.won&&$("hint-region").hidden');
+  ev('LearningApp.startGame();soundEnabled=true;gameAudio.setMuted(false);gameAudio.setVolume("voice",1);showLesson(CONFIG.hazards[0],true)');
+  await wait(500);
+  check('real Google MP3 narration starts and replaces captions','state==="lesson"&&$("lesson-caption").hidden');
+  ev('$("skip-lesson").click();pause();$("volume-music").value="30";$("volume-music").dispatchEvent(new Event("input"));$("pause-skills").click()');
+  document.getElementById('checks').textContent=results.join('\n')+'\nALL CHECKS PASSED';
+ }catch(error){document.getElementById('checks').textContent=results.join('\n')+'\nFAIL '+error.stack}
+}
+</script></html>

@@ -1,0 +1,34 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>SFX recovery checks</title><iframe src="../index.html"></iframe><pre id="checks">Running…</pre><script>
+document.querySelector('iframe').onload=async function(){
+ const w=this.contentWindow,ev=code=>w.eval(code),results=[],wait=()=>new Promise(r=>setTimeout(r,30));
+ const check=(name,code)=>{if(!ev(code))throw Error(name);results.push('PASS '+name)};
+ try{
+  ev(`
+   window.started=[];window.stopped=0;
+   window.Audio=class{constructor(src){this.src=src;this.paused=true;this.duration=.3;}play(){this.paused=false;return Promise.resolve();}pause(){this.paused=true;}};
+   window.fetch=async()=>({ok:true,arrayBuffer:async()=>new ArrayBuffer(8)});
+   window.AudioContext=class{
+    constructor(){this.state='suspended';this.destination={};this.allowResume=false;window.testContext=this;}
+    resume(){this.resumes=(this.resumes||0)+1;if(this.allowResume){this.state='running';return Promise.resolve();}return new Promise(()=>{});}
+    decodeAudioData(){return Promise.resolve({duration:.3});}
+    createGain(){return {gain:{value:0},connect(){},disconnect(){}};}
+    createBufferSource(){return {connect(){},disconnect(){},start(){started.push(this.buffer);},stop(){stopped++;}};}
+   };
+   window.audioUnderTest=createGameAudio();audioUnderTest.setMuted(false);audioUnderTest.setVolume('effects',.75);audioUnderTest.setState('search');audioUnderTest.unlock();
+  `);
+  await wait();
+  ev('audioUnderTest.play("pop")');
+  check('effects decode and schedule even when the first resume promise stays pending','started.length===1&&testContext.state==="suspended"');
+  ev('testContext.allowResume=true;audioUnderTest.unlock()');
+  check('a later gesture retries the interrupted audio context','testContext.state==="running"&&testContext.resumes>=2');
+  ev('audioUnderTest.setHidden(true)');
+  check('hiding the game stops pending effects','stopped===1');
+  ev('audioUnderTest.setHidden(false);testContext.state="interrupted";audioUnderTest.play("meow")');
+  check('the next tap recovers after an interruption','testContext.state==="running"&&started.length===2');
+  ev('audioUnderTest.setMuted(true);audioUnderTest.play("pop")');
+  check('mute remains respected during recovery','started.length===2');
+  ev('audioUnderTest.setState("hub")');
+  document.getElementById('checks').textContent=results.join('\n')+'\nALL CHECKS PASSED';
+ }catch(error){document.getElementById('checks').textContent=results.join('\n')+'\nFAIL '+error.stack}
+};
+</script></html>

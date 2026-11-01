@@ -1,0 +1,84 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>Narration checks</title>
+<style>body{margin:0}iframe{width:390px;height:844px;border:0}pre{position:fixed;right:0;top:0;max-width:55vw;background:white;white-space:pre-wrap}</style>
+<iframe src="../index.html"></iframe><pre id="checks">Running…</pre><script>
+document.querySelector('iframe').onload=async function(){
+ const w=this.contentWindow,ev=code=>w.eval(code),results=[];
+ const check=(name,code)=>{if(!ev(code))throw Error(name);results.push('PASS '+name)};
+ try{
+  ev(`
+   clearLessonTimers();
+   window.fakeSynth=new class extends EventTarget {
+    voices=[{name:'Microsoft An',lang:'vi-VN'},{name:'Google US English',lang:'en-US'},{name:'Google Tiếng Việt',lang:'vi-VN'}];
+    calls=[];cancels=0;autoStart=true;current=null;
+    getVoices(){return this.voices;}
+    cancel(){this.cancels++;this.current=null;}
+    resume(){}
+    speak(u){this.current=u;this.calls.push(u);if(this.autoStart)u.onstart?.();}
+    finish(){const u=this.current;this.current=null;u?.onend?.();}
+    fail(){const u=this.current;this.current=null;u?.onerror?.({error:'network'});}
+   };
+   Object.defineProperty(window,'speechSynthesis',{configurable:true,value:fakeSynth});
+   window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+   window.clock=1000;window.frameSeq=0;window.frames=new Map();
+   performance.now=()=>clock;
+   window.requestAnimationFrame=callback=>{frames.set(++frameSeq,callback);return frameSeq;};
+   window.cancelAnimationFrame=id=>frames.delete(id);
+   window.step=ms=>{clock+=ms;const batch=[...frames.values()];frames.clear();batch.forEach(fn=>fn(clock));};
+   soundEnabled=true;CONFIG.recordedNarration=false;CONFIG.lessonDuration=1000;LearningApp.startGame();discover(CONFIG.hazards[0]);
+  `);
+  check('prefers Google Vietnamese over other installed voices','fakeSynth.current.voice.name==="Google Tiếng Việt"&&fakeSynth.current.lang==="vi-VN"');
+  check('speech replaces visible captions after starting','$("lesson-caption").hidden&&!document.querySelector(".lesson-stage").textContent.trim()');
+  ev('window.clockBefore=remaining;step(2500)');
+  check('animation waits for the current phrase without consuming game time','document.querySelector(".lesson-stage").dataset.phase==="0"&&parseFloat($("lesson-fill").style.width)<18&&remaining===clockBefore');
+  ev('fakeSynth.finish();step(20)');
+  check('next action starts after the previous phrase ends','document.querySelector(".lesson-stage").dataset.phase==="1"&&fakeSynth.current.text.includes("ngắt nguồn")');
+  ev('window.pausedAt=$("lesson-fill").style.width;$("lesson-toggle").click();step(2000)');
+  check('pause cancels narration and freezes animation','fakeSynth.current===null&&$("lesson-fill").style.width===pausedAt');
+  ev('$("lesson-toggle").click()');
+  check('resume restarts only the current phrase','fakeSynth.current.text.includes("ngắt nguồn")');
+  ev('$("lesson-voice").click()');
+  check('mute cancels narration and exposes one short caption','!soundEnabled&&fakeSynth.current===null&&!$("lesson-caption").hidden&&$("lesson-caption").textContent.length<70');
+  ev('$("lesson-voice").click();activeLesson.setHidden(true);window.hiddenAt=$("lesson-fill").style.width;step(1000)');
+  check('hidden page stops speech and animation','fakeSynth.current===null&&$("lesson-fill").style.width===hiddenAt');
+  ev('activeLesson.setHidden(false);$("lesson-replay").click()');
+  check('replay starts with the first phrase and first image','document.querySelector(".lesson-stage").dataset.phase==="0"&&fakeSynth.current.text.includes("Dây điện bị hở")&&parseFloat($("lesson-fill").style.width)===0');
+  ev('fakeSynth.fail()');
+  check('speech failure shows captions immediately','!$("lesson-caption").hidden');
+  ev('window.stale=fakeSynth.calls.at(-1);$("skip-lesson").click();stale.onstart?.()');
+  check('skip cancels speech; late callbacks do not revive the lesson','state==="search"&&activeLesson===null&&fakeSynth.current===null');
+  ev('showLesson(CONFIG.hazards[1],true);fakeSynth.finish();step(5000)');
+  check('a delayed frame cannot skip a narrated action','document.querySelector(".lesson-stage").dataset.phase==="1"&&fakeSynth.current!==null');
+  ev('fakeSynth.finish();step(5000);fakeSynth.finish();step(5000);step(5000)');
+  check('the final phrase finishes before closing the demo','state==="lesson"&&document.querySelector(".lesson-stage").dataset.phase==="3"&&fakeSynth.current!==null');
+  ev('fakeSynth.finish();step(5000)');
+  check('completed narration closes the demo and records learning','state==="search"&&profile.learned.includes("socket")&&activeLesson===null');
+  ev('window.availability=[];window.voice=createLessonVoice(value=>availability.push(value));fakeSynth.voices=[{name:"Microsoft An",lang:"vi-VN"}];voice.speak("Xin chào")');
+  check('uses an installed Vietnamese voice when Google is absent','fakeSynth.current.voice.name==="Microsoft An"');
+  ev('voice.cancel();fakeSynth.voices=[{name:"Google US English",lang:"en-US"}];voice.speak("Xin chào")');
+  check('does not read Vietnamese with an English-only voice','fakeSynth.current===null&&!voice.pending&&availability.at(-1)===false');
+  ev('fakeSynth.voices=[];fakeSynth.autoStart=false;voice.speak("Xin chào")');
+  await new Promise(resolve=>setTimeout(resolve,3200));
+  check('silent or blocked speech times out and releases playback','!voice.pending&&fakeSynth.current===null&&availability.at(-1)===false');
+  ev('Object.defineProperty(window,"speechSynthesis",{configurable:true,value:undefined});window.noVoice=createLessonVoice(value=>availability.push(value));noVoice.speak("Xin chào")');
+  check('browsers without Web Speech keep the visual lesson usable','!noVoice.pending&&availability.at(-1)===false');
+  ev(`
+   Object.defineProperty(window,'speechSynthesis',{configurable:true,value:fakeSynth});fakeSynth.autoStart=true;
+   fakeSynth.voices=[{name:'Google Tiếng Việt',lang:'vi-VN'}];
+   window.NativeAudio=Audio;
+   window.Audio=class{constructor(src){this.src=src;this.paused=true;window.lastRecording=this;}play(){this.paused=false;this.onplaying?.();return Promise.resolve();}pause(){this.paused=true;}};
+   window.recorded=createLessonVoice(value=>availability.push(value));
+   recorded.speak('Xin chào','assets/audio/voice/wire-0.mp3');
+  `);
+  check('bundled Google recording is preferred to browser speech','recorded.pending&&lastRecording.src.includes("wire-0.mp3")&&availability.at(-1)===true&&fakeSynth.current===null');
+  ev('window.playerBefore=lastRecording;lastRecording.onended()');
+  check('recording completion releases the animation','!recorded.pending&&lastRecording.paused');
+  ev('recorded.speak("Xin chào","assets/audio/voice/wire-1.mp3")');
+  check('one audio player is reused for mobile playback permissions','lastRecording===playerBefore&&recorded.pending');
+  ev('window.failedRecording=lastRecording.onerror;failedRecording();failedRecording();');
+  check('a missing recording falls back once to Vietnamese browser speech','fakeSynth.current.text==="Xin chào"&&recorded.pending&&lastRecording.paused');
+  ev('recorded.cancel();window.Audio=NativeAudio;');
+  check('cancel stops both recording and fallback speech','!recorded.pending&&fakeSynth.current===null');
+  document.getElementById('checks').textContent=results.join('\n')+'\nALL CHECKS PASSED';
+ }catch(error){document.getElementById('checks').textContent=results.join('\n')+'\nFAIL '+error.stack}
+};
+</script></html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#163e36">
+  <title>Nhà an toàn · Đội trưởng Tí</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="lessons.css">
+  <link rel="stylesheet" href="screens.css">
+  <link rel="stylesheet" href="visual.css">
+  <link rel="stylesheet" href="design-buttons.css">
+  <link rel="stylesheet" href="game-polish.css">
+  <link rel="preload" as="image" href="assets/visual/safe.png">
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true"><defs><symbol id="bear" viewBox="0 0 160 160"><circle cx="38" cy="67" r="22" fill="#aa6038"/><circle cx="122" cy="67" r="22" fill="#aa6038"/><ellipse cx="80" cy="104" rx="57" ry="48" fill="#d99b62"/><ellipse cx="80" cy="120" rx="29" ry="22" fill="#ffe3ba"/><circle cx="59" cy="99" r="5" fill="#352d29"/><circle cx="101" cy="99" r="5" fill="#352d29"/><ellipse cx="80" cy="116" rx="9" ry="6" fill="#352d29"/><path d="M69 129q11 12 22 0" fill="none" stroke="#352d29" stroke-width="4" stroke-linecap="round"/><circle cx="43" cy="115" r="9" fill="#efac82"/><circle cx="117" cy="115" r="9" fill="#efac82"/><path d="M34 61q0-43 46-43t46 43" fill="#f5a530"/><path d="M68 23v32h24V23" fill="#ffcf63"/><rect x="23" y="54" width="114" height="17" rx="8" fill="#f5a530"/><path d="M80 35l12 5v12q-3 10-12 14-9-4-12-14V40z" fill="#28654e"/><path d="M80 41l-5 10h5l-2 9 9-13h-6l3-6" fill="#fff0bc"/><path d="M49 146h62l-4 14H53z" fill="#28654e"/></symbol></defs></svg>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="./index.html" aria-label="Nhà an toàn, trang đầu"><span class="brand-mark">✦</span><span>Nhà an toàn<small>HỌC AN TOÀN · CHƠI VUI</small></span></a>
+      <div class="chapter"><span class="chapter-dot"></span> BÀI 01 <span>/</span> Ngôi nhà của em</div>
+    </header>
+    <main id="game-screen">
+      <section class="heading"><div><p class="eyebrow">BIỆT ĐỘI AN TOÀN</p><h1>Một căn phòng. <em>Ba bí mật.</em></h1></div><p>Quan sát thật kỹ.<br>Mỗi phát hiện là một bài học nhỏ!</p></section>
+      <div class="game-layout">
+        <section class="play-panel" aria-label="Màn chơi căn phòng">
+          <div id="scene" class="scene">
+            <div id="camera" class="scene-camera" aria-label="Căn phòng, kéo hoặc vuốt ngang và dọc để quan sát" tabindex="0">
+            <div class="scene-art">
+            <img id="kitchen" src="assets/visual/final.png" alt="Phòng khách isometric có sofa, bàn, tivi, quạt và các nguy cơ gây cháy. Chạm vào đồ vật có nguy cơ gây cháy." draggable="false">
+            <div id="repairs" class="scene-repairs" aria-hidden="true"></div>
+            <div id="objects" class="objects"></div>
+            <div id="hint-region" class="hint-region" hidden></div>
+            </div>
+            </div>
+            <div class="hud compact-hud">
+              <div class="hud-avatar" aria-hidden="true"><svg class="mascot"><use href="#bear"/></svg></div>
+              <div class="timer-block" role="timer" aria-label="Thời gian còn lại"><span class="hud-room-label">PHÒNG KHÁCH</span><div class="timer-capsule"><span aria-hidden="true">◷</span><strong id="timer">02:00</strong></div><span id="timer-penalty"></span></div>
+              <div class="progress-block" aria-label="Nguy cơ đã tìm"><img class="hazard-emblem" src="assets/design-system/flame.svg" width="24" height="30" alt=""><div><strong id="progress">0 <span>/ 3</span></strong><small>Nguy cơ</small></div><div id="progress-dots" class="progress-dots" hidden></div></div>
+              <button id="pause" class="icon-button ds-button ds-secondary ds-icon" disabled aria-label="Tạm dừng"><img class="ds-icon-image" src="assets/design-system/pause-bold.svg" width="24" height="24" alt=""></button>
+            </div>
+            <div class="game-tools">
+              <button id="notebook-button" class="icon-button ds-button ds-secondary ds-icon" disabled aria-label="Mở sổ tay các nguy cơ đã tìm"><img class="notebook-art" src="assets/design-system/notebook-blue.webp" width="38" height="38" alt=""><span id="notebook-badge" class="tool-badge" hidden>0</span></button>
+            </div>
+            <button id="hint" class="hint-button ds-button ds-secondary" disabled aria-label="Gợi ý, trừ 20 giây mỗi lần"><img class="ds-icon-image" src="assets/design-system/hint.svg" width="24" height="24" alt=""><small id="hint-cost">−20s</small></button>
+            <div class="scene-footer"><svg class="mascot" aria-hidden="true"><use href="#bear"/></svg><div><strong>Nhà an toàn</strong><span class="camera-tip">↔ ↕ Kéo hoặc vuốt để khám phá</span><span id="state-label" class="sr-only">Sẵn sàng khám phá</span></div><span class="mission-target">Tìm 3 nguy cơ</span></div>
+            <div id="scene-toast" class="scene-toast" role="status" hidden></div>
+            <div id="overlay" class="overlay"></div>
+          </div>
+        </section>
+        <aside class="sidebar">
+          <div class="mission-card"><span class="pill">NHIỆM VỤ CỦA EM</span><h2>Trở thành<br>người hùng nhỏ.</h2><p>Tìm <strong id="target-count">3 nguy cơ gây cháy</strong> đang ẩn trong căn phòng.</p><div class="mascot-wrap"><span class="mascot-spark s1">✦</span><svg class="mascot"><use href="#bear"/></svg><span class="mascot-spark s2">✧</span></div><div class="speech">“Mắt tinh, bình tĩnh.<br>Chúng mình cùng tìm nhé!”</div><div class="mascot-name">ĐỘI TRƯỞNG TÍ <span>Người bạn đồng hành</span></div></div>
+          <div class="notebook"><div class="notebook-title"><span>▤</span><h3>Sổ tay khám phá</h3><small id="notebook-count">0/3</small></div><div id="discoveries" class="discoveries"></div><p class="notebook-note">Phát hiện một nguy cơ để mở bài học.</p></div>
+          <div class="tip"><span>✧</span><p><strong>Chậm một chút, tinh mắt hơn.</strong>Chạm nhầm một đồ vật sẽ mất 5 giây.</p></div>
+        </aside>
+      </div>
+    </main>
+    <footer class="page-footer"><span>AN TOÀN BẮT ĐẦU TỪ NHỮNG ĐIỀU NHỎ</span><span>Phòng khách <span>·</span> Prototype 01</span></footer>
+    <section id="learning-app" class="learning-shell" aria-label="Thư viện kỹ năng"></section>
+  </div>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+  <script src="visual-data.js"></script>
+  <script src="audio.js"></script>
+  <script src="voice.js"></script>
+  <script src="lessons.js"></script>
+  <script src="game.js"></script>
+  <script src="screens.js"></script>
+</body>
+</html>

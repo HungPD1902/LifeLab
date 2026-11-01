@@ -47,6 +47,17 @@ Tổng **57 frame Figma** được ánh xạ trong `src/data/screens.ts`. Có th
 
 Các thao tác mẫu: đổi tab, lọc nhiệm vụ/danh mục, nhập form, chọn radio/checkbox, bật/tắt cài đặt, tạo/đổi tên lớp và nhiệm vụ trong phiên xem, chấp nhận/từ chối yêu cầu, trang bị vật phẩm, chuyển mascot. Bài học dùng nút Bắt đầu để đi sang màn kế tiếp; khu vực game giữ placeholder như wireframe.
 
+## Bộ màn GameDoAn
+
+Đã chuyển nguyên bộ màn **Nhà an toàn · Đội trưởng Tí** từ GameDoAn, gồm
+HTML/CSS/JS, ảnh, âm thanh, bài học, game và kiểm tra. Mở tại **Thư viện →
+Nhà an toàn · GameDoAn** hoặc `/gamedoan`. Danh mục chia thành Khám phá,
+Học và chơi, Cá nhân; kết quả và xem lại xuất hiện sau lượt chơi.
+
+Mã gốc nằm tại `public/games/gamedoan/`, hiển thị bằng Expo DOM trên web,
+Android và iOS. Route nằm tại `src/app/gamedoan/`, code tích hợp tại
+`src/features/gamedoan/`. Chi tiết: [docs/gamedoan/integration.md](docs/gamedoan/integration.md).
+
 ## Cấu trúc code
 
 ```text
