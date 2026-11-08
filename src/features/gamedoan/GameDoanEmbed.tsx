@@ -7,17 +7,28 @@ type Props = {
   onNavigate: (view: string) => Promise<void>;
   gameLesson?: 1;
   onContinue: () => Promise<void>;
+  onBack: () => Promise<void>;
   dom?: import('expo/dom').DOMProps;
 };
 
 // Keep the original document isolated: its global CSS, timers and audio own this frame.
-export default function GameDoanEmbed({ initialView, onNavigate, gameLesson, onContinue }: Props) {
+export default function GameDoanEmbed({
+  initialView,
+  onNavigate,
+  gameLesson,
+  onContinue,
+  onBack,
+}: Props) {
   const frame = useRef<HTMLIFrameElement>(null);
   const base = `${process.env.EXPO_BASE_URL ?? '/'}`.replace(/\/?$/, '/');
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
+      if (event.data?.type === 'lifelab:gamedoan:back') {
+        void onBack();
+        return;
+      }
       if (event.data?.type === 'lifelab:gamedoan:continue') {
         void onContinue();
         return;
@@ -28,7 +39,7 @@ export default function GameDoanEmbed({ initialView, onNavigate, gameLesson, onC
     };
     window.addEventListener('message', receive);
     return () => window.removeEventListener('message', receive);
-  }, [onNavigate, onContinue]);
+  }, [onNavigate, onContinue, onBack]);
 
   return (
     <iframe

@@ -9,6 +9,12 @@ test('fresh users can open the real game from direct links without completing le
     await page.goto(path);
     const game = page.frameLocator('iframe[title="GameDoAn · Nhà an toàn"]');
     await expect(game.locator('#game-screen')).toBeVisible();
+    if (path === '/game') {
+      await expect(game.getByRole('dialog', { name: /Truy tìm nguy cơ cháy/i })).toBeVisible();
+      await expect(game.locator('#timer')).toHaveText('02:00');
+      await expect(game.locator('#scene')).toHaveClass(/zoomed/);
+      await game.getByRole('button', { name: 'Bắt đầu nào!' }).click();
+    }
     await expect(game.locator('#pause')).toBeEnabled();
     await expect(game.locator('#kitchen')).toBeVisible();
     await expect
@@ -23,12 +29,15 @@ test('fresh users can open the real game from direct links without completing le
           () => JSON.parse(localStorage.getItem('safe-kitchen-course-v1') || '{}').completed ?? [],
         ),
     ).toEqual([]);
-    await game.getByRole('button', { name: 'Tạm dừng', exact: true }).click();
-    await expect(game.getByRole('dialog', { name: 'Nghỉ một chút nhé!' })).toBeVisible();
+    await game.locator('#pause').click();
+    await expect(
+      game.getByRole('dialog', { name: path === '/game' ? 'Cài đặt' : 'Nghỉ một chút nhé!' }),
+    ).toBeVisible();
     await game.getByRole('button', { name: 'Tiếp tục chơi', exact: true }).click();
     await expect(game.locator('#pause')).toBeEnabled();
     await page.reload();
     await expect(game.locator('#game-screen')).toBeVisible();
+    if (path === '/game') await game.getByRole('button', { name: 'Bắt đầu nào!' }).click();
     await expect(game.locator('#pause')).toBeEnabled();
   }
   expect(errors).toEqual([]);
@@ -38,9 +47,10 @@ test('library and gallery game buttons open gameplay for a new player', async ({
   await page.goto('/skills');
   await page.getByRole('button', { name: 'Chơi game Nhà an toàn', exact: true }).click();
   const game = page.frameLocator('iframe[title="GameDoAn · Nhà an toàn"]');
+  await game.getByRole('button', { name: 'Bắt đầu nào!' }).click();
   await expect(game.locator('#pause')).toBeEnabled();
   await page.screenshot({ path: 'docs/preview/game.png' });
-  await page.getByRole('button', { name: 'Về bài 1', exact: true }).click();
+  await game.getByRole('button', { name: 'Về bài 1', exact: true }).click();
   await expect(page.locator('iframe')).toHaveCount(0);
   await page.goto('/gamedoan');
   await page.getByRole('button', { name: 'Game · Căn phòng an toàn', exact: true }).click();
@@ -53,11 +63,13 @@ test('lesson 1 game results retry gameplay and continue to lesson 2', async ({ p
   await expect(page.getByText('Bài 1', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Bắt đầu chơi', exact: true }).click();
   const game = page.frameLocator('iframe[title="GameDoAn · Nhà an toàn"]');
+  await game.getByRole('button', { name: 'Bắt đầu nào!' }).click();
   await expect(game.locator('#pause')).toBeEnabled();
   // Exercise real result/reward code at both terminal game states without waiting 120 seconds.
   await game.locator('body').evaluate(() => window.eval('finish(false)'));
   await expect(game.locator('.learn-score')).toHaveText('0');
   await game.locator('[data-action="result-next"]').click();
+  await game.getByRole('button', { name: 'Bắt đầu nào!' }).click();
   await expect(game.locator('#pause')).toBeEnabled();
   await game
     .locator('body')
@@ -69,6 +81,7 @@ test('lesson 1 game results retry gameplay and continue to lesson 2', async ({ p
       .evaluate(() => JSON.parse(localStorage.getItem('safe-kitchen-course-v1') || '{}').completed),
   ).toEqual([1]);
   await game.locator('[data-action="result-replay"]').click();
+  await game.getByRole('button', { name: 'Bắt đầu nào!' }).click();
   await expect(game.locator('#pause')).toBeEnabled();
   await game
     .locator('body')

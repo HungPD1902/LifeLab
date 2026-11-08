@@ -29,17 +29,22 @@ export function GameDoanPlayer({
   const onContinue = useCallback(async () => {
     router.replace('/lesson-2');
   }, []);
+  const onBack = useCallback(async () => {
+    router.replace(exitTo === 'lesson-1' ? '/lesson-1' : '/gamedoan');
+  }, [exitTo]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
-        <Button
-          label={exitTo === 'lesson-1' ? 'Về bài 1' : 'Về danh mục GameDoAn'}
-          variant="outline"
-          icon="arrow-left"
-          onPress={() => router.replace(exitTo === 'lesson-1' ? '/lesson-1' : '/gamedoan')}
-        />
-      </View>
+      {gameLesson !== 1 && (
+        <View style={{ paddingHorizontal: 12, paddingVertical: 6 }}>
+          <Button
+            label={exitTo === 'lesson-1' ? 'Về bài 1' : 'Về danh mục GameDoAn'}
+            variant="outline"
+            icon="arrow-left"
+            onPress={onBack}
+          />
+        </View>
+      )}
       <View style={{ flex: 1, overflow: 'hidden' }}>
         {active && (
           <GameDoanEmbed
@@ -47,6 +52,7 @@ export function GameDoanPlayer({
             onNavigate={onNavigate}
             gameLesson={gameLesson}
             onContinue={onContinue}
+            onBack={onBack}
             dom={{ style: { flex: 1 }, scrollEnabled: false }}
           />
         )}

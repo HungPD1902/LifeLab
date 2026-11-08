@@ -71,7 +71,8 @@ test('task filter and lessons open the game before the assessment preview', asyn
   await page.getByRole('button', { name: 'Bắt đầu chơi', exact: true }).click();
   await expect(page).toHaveURL(/\/game(?:\?|$)/);
   await expect(page.frameLocator('iframe').locator('#game-screen')).toBeVisible();
-  await page.getByRole('button', { name: 'Về bài 1', exact: true }).click();
+  await page.frameLocator('iframe').getByRole('button', { name: 'Bắt đầu nào!' }).click();
+  await page.frameLocator('iframe').getByRole('button', { name: 'Về bài 1', exact: true }).click();
   await expect(page).toHaveURL(/lesson-1/);
   await page.goto('/lesson-2');
   for (const step of [2, 3]) {
@@ -181,7 +182,9 @@ test('every route renders without runtime errors or horizontal overflow', async 
   for (const id of Object.keys(screenMeta)) {
     await page.goto(id === 'splash' ? '/' : '/' + id);
     if (id === 'game') {
-      await expect(page.frameLocator('iframe').locator('#pause')).toBeEnabled();
+      await expect(
+        page.frameLocator('iframe').getByRole('button', { name: 'Bắt đầu nào!' }),
+      ).toBeVisible();
     } else {
       await expect(page.getByText('9:41', { exact: true }).filter({ visible: true })).toBeVisible();
     }
